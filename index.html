@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบรับสิทธิพิเศษ</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body style="background-color: #f5f5f5; text-align: center; font-family: sans-serif; padding-top: 30px; margin: 0;">
+  
+  <div id="loadingSection" style="padding: 20px;">
+    <h3 id="statusText" style="color: #666;">กำลังตรวจสอบข้อมูล...</h3>
+  </div>
+
+  <div id="shareSection" style="display: none; padding: 20px;">
+    <h2 style="color: #D4AF37; margin-bottom: 10px;">Premium Member</h2>
+    <p style="color: #666; margin-bottom: 25px; font-size: 14px;">
+      ส่งต่อสิทธิประโยชน์ที่คุ้มค่ากว่าและการดูแลที่เหนือกว่าให้เพื่อนของคุณ
+    </p>
+    <button id="btnShare" onclick="executeShare()" style="background-color: #1DB446; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      เลือกเพื่อนเพื่อแชร์สิทธิ์
+    </button>
+  </div>
+
+  <script>
+    const liffId = "2009043114-4sItQ1zE"; 
+    // ⚠️ ลิงก์นี้สำคัญมาก หากเขาไม่ได้แอดเพื่อน ระบบจะพามาที่ลิงก์นี้
+    const lineOALink = "https://line.me/R/ti/p/@poy365"; 
+    
+    // ⚠️ นำ Web App URL ของ GAS มาวางตรงนี้
+    const gasAppUrl = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec"; 
+
+    let currentUserId = "", currentUserName = "", currentUserPic = "";
+
+    async function initializeLiff() {
+      const statusText = document.getElementById('statusText');
+      try {
+        await liff.init({ liffId: liffId });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+
+        const profile = await liff.getProfile();
+        currentUserId = profile.userId || "";
+        currentUserName = profile.displayName || "สมาชิก";
+        currentUserPic = profile.pictureUrl || "";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const refId = urlParams.get('refId');
+        
+        if (refId) {
+          // ==========================================
+          // 🛑 เช็กสถานะการเป็นเพื่อนกับ LINE OA
+          // ==========================================
+          statusText.innerText = "กำลังตรวจสอบสิทธิ์...";
+          const friendship = await liff.getFriendship();
+          
+          if (!friendship.friendFlag) {
+            // ถ้ายังไม่เป็นเพื่อน: บล็อกการส่งข้อมูล และพาไปหน้าแอดเพื่อน
+            statusText.innerHTML = "คุณต้องเพิ่มเพื่อนก่อนเพื่อรับสิทธิ์<br>กำลังพาคุณไปยังหน้าเพิ่มเพื่อน...";
+            setTimeout(() => {
+              window.location.href = lineOALink;
+            }, 2500);
+            return; // ⛔️ หยุดการทำงานตรงนี้ สิทธิ์จะไม่ถูกส่งไปให้ผู้แชร์
+          }
+
+          // ถ้ายอมรับเป็นเพื่อนแล้ว: ให้ดำเนินการส่งข้อมูลแจกสิทธิ์ต่อ
+          statusText.innerText = "ยืนยันการรับสิทธิ์ให้คุณ " + currentUserName + "...";
+          
+          const url = new URL(gasAppUrl);
+          url.searchParams.append("action", "recordReferral");
+          url.searchParams.append("refId", refId);
+          url.searchParams.append("refName", urlParams.get('refName') || "");
+          url.searchParams.append("refPic", urlParams.get('refPic') || "");
+          url.searchParams.append("newUserId", currentUserId);
+          url.searchParams.append("newUserName", currentUserName);
+          url.searchParams.append("newUserPic", currentUserPic);
+
+          fetch(url)
+            .then(response => response.json())
+            .then(result => {
+              if (result.status === "duplicate") {
+                statusText.innerText = "คุณเคยรับสิทธิ์นี้ไปแล้ว กรุณาตรวจสอบในห้องแชท";
+                setTimeout(() => { liff.closeWindow(); }, 2000); 
+              } else if (result.status === "success") {
+                statusText.innerText = "สำเร็จ! กดใช้งานสิทธิ์ในห้องแชทได้เลย";
+                setTimeout(() => { liff.closeWindow(); }, 1500);
+              } else {
+                statusText.innerText = "Error: " + result.message;
+              }
+            })
+            .catch(err => {
+              statusText.innerText = "Error: " + err;
+            });
+
+        } else {
+          // กรณีผู้แชร์เปิดลิงก์เอง
+          document.getElementById('loadingSection').style.display = 'none';
+          document.getElementById('shareSection').style.display = 'block';
+        }
+      } catch (error) {
+        statusText.innerText = "LIFF Error: " + error.message;
+      }
+    }
+
+    async function executeShare() {
+      if (!liff.isApiAvailable('shareTargetPicker')) return alert("แอป LINE ไม่รองรับ");
+      try {
+        const trackingLink = "https://liff.line.me/" + liffId + "?refId=" + encodeURIComponent(currentUserId) + "&refName=" + encodeURIComponent(currentUserName) + "&refPic=" + encodeURIComponent(currentUserPic);
+        
+        await liff.shareTargetPicker([{
+          "type": "flex",
+          "altText": currentUserName + " มอบสิทธิพิเศษให้คุณ",
+          "contents": {
+            "type": "bubble",
+            "body": {
+              "type": "box", "layout": "vertical",
+              "contents": [
+                { "type": "text", "text": "Exclusive Privilege", "weight": "bold", "color": "#D4AF37", "size": "sm" },
+                { "type": "text", "text": "สิทธิประโยชน์ที่คุ้มค่ากว่า", "weight": "bold", "size": "xl", "margin": "md" },
+                { "type": "text", "text": "เพื่อนของคุณ (" + currentUserName + ") มอบคูปองพิเศษสำหรับคุณโดยเฉพาะ", "wrap": true, "margin": "md", "color": "#666666" }
+              ]
+            },
+            "footer": {
+              "type": "box", "layout": "vertical",
+              "contents": [{
+                "type": "button", "style": "primary", "color": "#1DB446",
+                "action": { "type": "uri", "label": "กดรับสิทธิ์ทันที", "uri": trackingLink }
+              }]
+            }
+          }
+        }], { isMultiple: true });
+        liff.closeWindow();
+      } catch (err) { alert("Error: " + err.message); }
+    }
+
+    window.onload = initializeLiff;
+  </script>
+</body>
+</html>
+
