@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>แบบสำรวจงานวิจัยการตลาด - BLA</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <!-- นำเข้า LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <!-- นำเข้า SweetAlert2 สำหรับหน้าต่างแจ้งเตือนสวยๆ -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <style>
@@ -26,8 +27,6 @@
 <body class="p-4 md:p-8">
 
   <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
-    
-    <!-- ส่วนหัว -->
     <div id="surveyHeader" class="text-center mb-8 border-b-2 border-blue-100 pb-6">
       <h1 class="text-3xl font-bold text-blue-800 mb-2">แบบสำรวจงานวิจัยการตลาด</h1>
       <p class="text-gray-600 text-lg">ทัศนคติต่อการประกันชีวิตและตัวแทนประกันชีวิต</p>
@@ -42,145 +41,48 @@
       </div>
 
       <div class="space-y-4">
-        <!-- Q1 -->
-        <div class="question-card">
-          <label class="question-label">1. เมื่อมีใครสักคนพูดว่า "ตัวแทนขายประกัน" คุณนึกถึงภาพอะไรขึ้นมาในใจบ้าง?</label>
-          <span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="checkbox" name="q1" value="นักขายที่ตื้อเก่ง น่ารำคาญ" class="option-input"> นักขายที่ตื้อเก่ง น่ารำคาญ</label>
-            <label class="option-label"><input type="checkbox" name="q1" value="คนที่มาช่วยวางแผนการเงินและให้คำปรึกษา" class="option-input"> คนที่มาช่วยวางแผนการเงินและให้คำปรึกษา</label>
-            <label class="option-label"><input type="checkbox" name="q1" value="คนที่มาสร้างภาระค่าใช้จ่ายโดยไม่จำเป็น" class="option-input"> คนที่มาสร้างภาระค่าใช้จ่ายโดยไม่จำเป็น</label>
-            <label class="option-label"><input type="checkbox" name="q1" value="ที่พึ่งยามเกิดวิกฤต (เจ็บป่วย/อุบัติเหตุ)" class="option-input"> ที่พึ่งยามเกิดวิกฤต (เจ็บป่วย/อุบัติเหตุ)</label>
-            <label class="option-label"><input type="checkbox" name="q1" value="เพื่อนหรือญาติที่มาขอช่วยยอด" class="option-input"> เพื่อนหรือญาติที่มาขอช่วยยอด</label>
-            <label class="option-label"><input type="checkbox" name="q1" value="มืออาชีพ มีความรู้ น่าเชื่อถือ" class="option-input"> มืออาชีพ มีความรู้ น่าเชื่อถือ</label>
-            <label class="option-label"><input type="checkbox" name="q1" value="ยังไม่มีภาพที่ชัดเจน" class="option-input"> ยังไม่มีภาพที่ชัดเจน</label>
-          </div>
-        </div>
+        <!-- Q1-Q10 -->
+        <div class="question-card"><label class="question-label">1. เมื่อมีใครสักคนพูดว่า "ตัวแทนขายประกัน" คุณนึกถึงภาพอะไรขึ้นมาในใจบ้าง?</label><span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="checkbox" name="q1" value="นักขายที่ตื้อเก่ง น่ารำคาญ" class="option-input"> นักขายที่ตื้อเก่ง น่ารำคาญ</label><label class="option-label"><input type="checkbox" name="q1" value="คนที่มาช่วยวางแผนการเงินและให้คำปรึกษา" class="option-input"> คนที่มาช่วยวางแผนการเงินและให้คำปรึกษา</label><label class="option-label"><input type="checkbox" name="q1" value="คนที่มาสร้างภาระค่าใช้จ่ายโดยไม่จำเป็น" class="option-input"> คนที่มาสร้างภาระค่าใช้จ่ายโดยไม่จำเป็น</label><label class="option-label"><input type="checkbox" name="q1" value="ที่พึ่งยามเกิดวิกฤต (เจ็บป่วย/อุบัติเหตุ)" class="option-input"> ที่พึ่งยามเกิดวิกฤต (เจ็บป่วย/อุบัติเหตุ)</label><label class="option-label"><input type="checkbox" name="q1" value="เพื่อนหรือญาติที่มาขอช่วยยอด" class="option-input"> เพื่อนหรือญาติที่มาขอช่วยยอด</label><label class="option-label"><input type="checkbox" name="q1" value="มืออาชีพ มีความรู้ น่าเชื่อถือ" class="option-input"> มืออาชีพ มีความรู้ น่าเชื่อถือ</label><label class="option-label"><input type="checkbox" name="q1" value="ยังไม่มีภาพที่ชัดเจน" class="option-input"> ยังไม่มีภาพที่ชัดเจน</label>
+        </div></div>
 
-        <!-- Q2 -->
-        <div class="question-card">
-          <label class="question-label">2. คุณมีกรมธรรม์ประกันภัยบ้างไหม? ถ้ามี มีประกันประเภทใดบ้าง?</label>
-          <span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="checkbox" name="q2" value="ไม่มีกรมธรรม์ใดๆ เลย" class="option-input"> ไม่มีกรมธรรม์ใดๆ เลย</label>
-            <label class="option-label"><input type="checkbox" name="q2" value="มีประกันรถยนต์ (ภาคสมัครใจ หรือ พ.ร.บ.)" class="option-input"> มีประกันรถยนต์ (ภาคสมัครใจ หรือ พ.ร.บ.)</label>
-            <label class="option-label"><input type="checkbox" name="q2" value="มีประกันชีวิต" class="option-input"> มีประกันชีวิต (เพื่อสะสมทรัพย์ / ความคุ้มครอง / บำนาญ)</label>
-            <label class="option-label"><input type="checkbox" name="q2" value="มีประกันสุขภาพ" class="option-input"> มีประกันสุขภาพ</label>
-            <label class="option-label"><input type="checkbox" name="q2" value="มีประกันอุบัติเหตุ" class="option-input"> มีประกันอุบัติเหตุ</label>
-            <label class="option-label"><input type="checkbox" name="q2" value="มีประกันบ้าน / ทรัพย์สิน" class="option-input"> มีประกันบ้าน / ทรัพย์สิน</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">2. คุณมีกรมธรรม์ประกันภัยบ้างไหม? ถ้ามี มีประกันประเภทใดบ้าง?</label><span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="checkbox" name="q2" value="ไม่มีกรมธรรม์ใดๆ เลย" class="option-input"> ไม่มีกรมธรรม์ใดๆ เลย</label><label class="option-label"><input type="checkbox" name="q2" value="มีประกันรถยนต์" class="option-input"> มีประกันรถยนต์ (ภาคสมัครใจ หรือ พ.ร.บ.)</label><label class="option-label"><input type="checkbox" name="q2" value="มีประกันชีวิต" class="option-input"> มีประกันชีวิต (เพื่อสะสมทรัพย์ / ความคุ้มครอง / บำนาญ)</label><label class="option-label"><input type="checkbox" name="q2" value="มีประกันสุขภาพ" class="option-input"> มีประกันสุขภาพ</label><label class="option-label"><input type="checkbox" name="q2" value="มีประกันอุบัติเหตุ" class="option-input"> มีประกันอุบัติเหตุ</label><label class="option-label"><input type="checkbox" name="q2" value="มีประกันบ้าน / ทรัพย์สิน" class="option-input"> มีประกันบ้าน / ทรัพย์สิน</label>
+        </div></div>
 
-        <!-- Q3 -->
-        <div class="question-card">
-          <label class="question-label">3. (ถ้ามีประกันชีวิต) คุณมีทุนประกันรวมประมาณเท่าไร?</label>
-          <span class="help-text">(เลือก 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="radio" name="q3" value="ต่ำกว่า 100,000 บาท" class="option-input"> ต่ำกว่า 100,000 บาท</label>
-            <label class="option-label"><input type="radio" name="q3" value="100,000 - 500,000 บาท" class="option-input"> 100,000 - 500,000 บาท</label>
-            <label class="option-label"><input type="radio" name="q3" value="500,001 - 1,000,000 บาท" class="option-input"> 500,001 - 1,000,000 บาท</label>
-            <label class="option-label"><input type="radio" name="q3" value="1,000,001 - 3,000,000 บาท" class="option-input"> 1,000,001 - 3,000,000 บาท</label>
-            <label class="option-label"><input type="radio" name="q3" value="มากกว่า 3,000,000 บาท" class="option-input"> มากกว่า 3,000,000 บาท</label>
-            <label class="option-label"><input type="radio" name="q3" value="ไม่แน่ใจ" class="option-input"> ไม่แน่ใจ / จำตัวเลขที่แน่นอนไม่ได้</label>
-            <label class="option-label"><input type="radio" name="q3" value="ไม่สะดวกเปิดเผยข้อมูล" class="option-input"> ไม่สะดวกเปิดเผยข้อมูล</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">3. (ถ้ามีประกันชีวิต) คุณมีทุนประกันรวมประมาณเท่าไร?</label><span class="help-text">(เลือก 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="radio" name="q3" value="ต่ำกว่า 100,000 บาท" class="option-input"> ต่ำกว่า 100,000 บาท</label><label class="option-label"><input type="radio" name="q3" value="100,000 - 500,000 บาท" class="option-input"> 100,000 - 500,000 บาท</label><label class="option-label"><input type="radio" name="q3" value="500,001 - 1,000,000 บาท" class="option-input"> 500,001 - 1,000,000 บาท</label><label class="option-label"><input type="radio" name="q3" value="1,000,001 - 3,000,000 บาท" class="option-input"> 1,000,001 - 3,000,000 บาท</label><label class="option-label"><input type="radio" name="q3" value="มากกว่า 3,000,000 บาท" class="option-input"> มากกว่า 3,000,000 บาท</label><label class="option-label"><input type="radio" name="q3" value="ไม่แน่ใจ" class="option-input"> ไม่แน่ใจ / จำตัวเลขที่แน่นอนไม่ได้</label><label class="option-label"><input type="radio" name="q3" value="ไม่สะดวกเปิดเผยข้อมูล" class="option-input"> ไม่สะดวกเปิดเผยข้อมูล</label>
+        </div></div>
 
-        <!-- Q4 -->
-        <div class="question-card">
-          <label class="question-label">4. เหตุใดคุณจึงซื้อกรมธรรม์ที่คุณมีอยู่?</label>
-          <span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="checkbox" name="q4" value="เพื่อความคุ้มครองสุขภาพและค่ารักษาพยาบาล" class="option-input"> เพื่อความคุ้มครองสุขภาพและค่ารักษาพยาบาล</label>
-            <label class="option-label"><input type="checkbox" name="q4" value="เพื่อสร้างความมั่นคงให้ครอบครัวหากเกิดเหตุไม่คาดฝัน" class="option-input"> เพื่อสร้างความมั่นคงให้ครอบครัวหากเกิดเหตุไม่คาดฝัน</label>
-            <label class="option-label"><input type="checkbox" name="q4" value="เพื่อใช้สิทธิลดหย่อนภาษี" class="option-input"> เพื่อใช้สิทธิลดหย่อนภาษี</label>
-            <label class="option-label"><input type="checkbox" name="q4" value="เพื่อเป็นการออมเงินหรือลงทุนในระยะยาว" class="option-input"> เพื่อเป็นการออมเงินหรือลงทุนในระยะยาว</label>
-            <label class="option-label"><input type="checkbox" name="q4" value="ซื้อเพราะเกรงใจตัวแทน (เพื่อน/ญาติ)" class="option-input"> ซื้อเพราะเกรงใจตัวแทน (เพื่อน/ญาติ)</label>
-            <label class="option-label"><input type="checkbox" name="q4" value="เป็นข้อบังคับ" class="option-input"> เป็นข้อบังคับ (เช่น ประกันรถยนต์, ประกันทำคู่กับเงินกู้)</label>
-            <label class="option-label"><input type="checkbox" name="q4" value="ตัวแทนอธิบายจนเห็นความสำคัญและตัดสินใจซื้อ" class="option-input"> ตัวแทนอธิบายจนเห็นความสำคัญและตัดสินใจซื้อ</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">4. เหตุใดคุณจึงซื้อกรมธรรม์ที่คุณมีอยู่?</label><span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="checkbox" name="q4" value="เพื่อความคุ้มครองสุขภาพและค่ารักษาพยาบาล" class="option-input"> เพื่อความคุ้มครองสุขภาพและค่ารักษาพยาบาล</label><label class="option-label"><input type="checkbox" name="q4" value="เพื่อสร้างความมั่นคงให้ครอบครัวหากเกิดเหตุไม่คาดฝัน" class="option-input"> เพื่อสร้างความมั่นคงให้ครอบครัวหากเกิดเหตุไม่คาดฝัน</label><label class="option-label"><input type="checkbox" name="q4" value="เพื่อใช้สิทธิลดหย่อนภาษี" class="option-input"> เพื่อใช้สิทธิลดหย่อนภาษี</label><label class="option-label"><input type="checkbox" name="q4" value="เพื่อเป็นการออมเงินหรือลงทุนในระยะยาว" class="option-input"> เพื่อเป็นการออมเงินหรือลงทุนในระยะยาว</label><label class="option-label"><input type="checkbox" name="q4" value="ซื้อเพราะเกรงใจตัวแทน (เพื่อน/ญาติ)" class="option-input"> ซื้อเพราะเกรงใจตัวแทน (เพื่อน/ญาติ)</label><label class="option-label"><input type="checkbox" name="q4" value="เป็นข้อบังคับ" class="option-input"> เป็นข้อบังคับ (เช่น ประกันรถยนต์, ประกันทำคู่กับเงินกู้)</label><label class="option-label"><input type="checkbox" name="q4" value="ตัวแทนอธิบายจนเห็นความสำคัญและตัดสินใจซื้อ" class="option-input"> ตัวแทนอธิบายจนเห็นความสำคัญและตัดสินใจซื้อ</label>
+        </div></div>
 
-        <!-- Q5 -->
-        <div class="question-card">
-          <label class="question-label">5. ในอนาคตคุณคิดจะเปลี่ยนแปลงเกี่ยวกับทุนประกันที่มีอยู่ไหม? เพราะอะไร?</label>
-          <span class="help-text">(เลือก 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="radio" name="q5" value="ไม่คิดจะเปลี่ยนแปลง" class="option-input"> ไม่คิดจะเปลี่ยนแปลง (พอใจกับทุนประกันที่มีอยู่แล้ว)</label>
-            <label class="option-label"><input type="radio" name="q5" value="คิดจะเพิ่มทุนประกัน" class="option-input"> คิดจะเพิ่มทุนประกัน (เพื่อให้ครอบคลุมภาระหน้าที่หรือรายได้ที่เพิ่มขึ้น)</label>
-            <label class="option-label"><input type="radio" name="q5" value="คิดจะลดทุนประกัน" class="option-input"> คิดจะลดทุนประกัน (เพื่อลดภาระเบี้ยประกันลง)</label>
-            <label class="option-label"><input type="radio" name="q5" value="ยังไม่แน่ใจ" class="option-input"> ยังไม่แน่ใจ ต้องรอดูสถานการณ์ทางการเงินในอนาคต</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">5. ในอนาคตคุณคิดจะเปลี่ยนแปลงเกี่ยวกับทุนประกันที่มีอยู่ไหม? เพราะอะไร?</label><span class="help-text">(เลือก 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="radio" name="q5" value="ไม่คิดจะเปลี่ยนแปลง" class="option-input"> ไม่คิดจะเปลี่ยนแปลง (พอใจกับทุนประกันที่มีอยู่แล้ว)</label><label class="option-label"><input type="radio" name="q5" value="คิดจะเพิ่มทุนประกัน" class="option-input"> คิดจะเพิ่มทุนประกัน (เพื่อให้ครอบคลุมภาระหน้าที่หรือรายได้ที่เพิ่มขึ้น)</label><label class="option-label"><input type="radio" name="q5" value="คิดจะลดทุนประกัน" class="option-input"> คิดจะลดทุนประกัน (เพื่อลดภาระเบี้ยประกันลง)</label><label class="option-label"><input type="radio" name="q5" value="ยังไม่แน่ใจ" class="option-input"> ยังไม่แน่ใจ ต้องรอดูสถานการณ์ทางการเงินในอนาคต</label>
+        </div></div>
 
-        <!-- Q6 -->
-        <div class="question-card">
-          <label class="question-label">6. คุณคิดว่า "ตัวแทนประกันชีวิต" ควรทำอะไรให้คุณบ้าง?</label>
-          <span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="checkbox" name="q6" value="ให้ข้อมูลผลิตภัณฑ์อย่างตรงไปตรงมาและครบถ้วน" class="option-input"> ให้ข้อมูลผลิตภัณฑ์อย่างตรงไปตรงมาและครบถ้วน</label>
-            <label class="option-label"><input type="checkbox" name="q6" value="ช่วยวิเคราะห์ความต้องการและวางแผนการเงินที่เหมาะสมให้" class="option-input"> ช่วยวิเคราะห์ความต้องการและวางแผนการเงินที่เหมาะสมให้</label>
-            <label class="option-label"><input type="checkbox" name="q6" value="ดูแลและบริการหลังการขายอย่างสม่ำเสมอ" class="option-input"> ดูแลและบริการหลังการขายอย่างสม่ำเสมอ (เช่น แจ้งเตือนชำระเบี้ย)</label>
-            <label class="option-label"><input type="checkbox" name="q6" value="อำนวยความสะดวกและช่วยเหลือเมื่อต้องทำเรื่องเคลม" class="option-input"> อำนวยความสะดวกและช่วยเหลือเมื่อต้องทำเรื่องเคลม</label>
-            <label class="option-label"><input type="checkbox" name="q6" value="ติดต่อมาเมื่อมีโปรโมชั่นใหม่ๆ ที่น่าสนใจ" class="option-input"> ติดต่อมาเมื่อมีโปรโมชั่นใหม่ๆ ที่น่าสนใจ</label>
-            <label class="option-label"><input type="checkbox" name="q6" value="ไม่มาตื้อหรือรบกวนบ่อยจนเกินไป" class="option-input"> ไม่มาตื้อหรือรบกวนบ่อยจนเกินไป</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">6. คุณคิดว่า "ตัวแทนประกันชีวิต" ควรทำอะไรให้คุณบ้าง?</label><span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="checkbox" name="q6" value="ให้ข้อมูลผลิตภัณฑ์อย่างตรงไปตรงมาและครบถ้วน" class="option-input"> ให้ข้อมูลผลิตภัณฑ์อย่างตรงไปตรงมาและครบถ้วน</label><label class="option-label"><input type="checkbox" name="q6" value="ช่วยวิเคราะห์ความต้องการและวางแผนการเงินที่เหมาะสมให้" class="option-input"> ช่วยวิเคราะห์ความต้องการและวางแผนการเงินที่เหมาะสมให้</label><label class="option-label"><input type="checkbox" name="q6" value="ดูแลและบริการหลังการขายอย่างสม่ำเสมอ" class="option-input"> ดูแลและบริการหลังการขายอย่างสม่ำเสมอ (เช่น แจ้งเตือนชำระเบี้ย)</label><label class="option-label"><input type="checkbox" name="q6" value="อำนวยความสะดวกและช่วยเหลือเมื่อต้องทำเรื่องเคลม" class="option-input"> อำนวยความสะดวกและช่วยเหลือเมื่อต้องทำเรื่องเคลม</label><label class="option-label"><input type="checkbox" name="q6" value="ติดต่อมาเมื่อมีโปรโมชั่นใหม่ๆ ที่น่าสนใจ" class="option-input"> ติดต่อมาเมื่อมีโปรโมชั่นใหม่ๆ ที่น่าสนใจ</label><label class="option-label"><input type="checkbox" name="q6" value="ไม่มาตื้อหรือรบกวนบ่อยจนเกินไป" class="option-input"> ไม่มาตื้อหรือรบกวนบ่อยจนเกินไป</label>
+        </div></div>
 
-        <!-- Q7 -->
-        <div class="question-card">
-          <label class="question-label">7. มีสิ่งใดบ้าง ที่ตัวแทนประกันชีวิตได้ทำไปแล้ว ซึ่งคุณเห็นว่าเป็นสิ่งที่ดี?</label>
-          <span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="checkbox" name="q7" value="อธิบายเงื่อนไขที่ซับซ้อนให้เข้าใจได้ง่าย" class="option-input"> อธิบายเงื่อนไขที่ซับซ้อนให้เข้าใจได้ง่าย</label>
-            <label class="option-label"><input type="checkbox" name="q7" value="ให้บริการรวดเร็ว ทันใจ" class="option-input"> ให้บริการรวดเร็ว ทันใจ</label>
-            <label class="option-label"><input type="checkbox" name="q7" value="มีความจริงใจ ไม่เน้นแค่จะขายอย่างเดียว" class="option-input"> มีความจริงใจ ไม่เน้นแค่จะขายอย่างเดียว</label>
-            <label class="option-label"><input type="checkbox" name="q7" value="ช่วยดูแลเรื่องเคลมได้อย่างราบรื่น" class="option-input"> ช่วยดูแลเรื่องเคลมได้อย่างราบรื่น</label>
-            <label class="option-label"><input type="checkbox" name="q7" value="มีความรู้ความสามารถ เป็นที่ปรึกษาได้จริง" class="option-input"> มีความรู้ความสามารถ เป็นที่ปรึกษาได้จริง</label>
-            <label class="option-label"><input type="checkbox" name="q7" value="ยังไม่เคยเจอประสบการณ์ที่ดี" class="option-input"> ยังไม่เคยเจอประสบการณ์ที่ดี</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">7. มีสิ่งใดบ้าง ที่ตัวแทนประกันชีวิตได้ทำไปแล้ว ซึ่งคุณเห็นว่าเป็นสิ่งที่ดี?</label><span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="checkbox" name="q7" value="อธิบายเงื่อนไขที่ซับซ้อนให้เข้าใจได้ง่าย" class="option-input"> อธิบายเงื่อนไขที่ซับซ้อนให้เข้าใจได้ง่าย</label><label class="option-label"><input type="checkbox" name="q7" value="ให้บริการรวดเร็ว ทันใจ" class="option-input"> ให้บริการรวดเร็ว ทันใจ</label><label class="option-label"><input type="checkbox" name="q7" value="มีความจริงใจ ไม่เน้นแค่จะขายอย่างเดียว" class="option-input"> มีความจริงใจ ไม่เน้นแค่จะขายอย่างเดียว</label><label class="option-label"><input type="checkbox" name="q7" value="ช่วยดูแลเรื่องเคลมได้อย่างราบรื่น" class="option-input"> ช่วยดูแลเรื่องเคลมได้อย่างราบรื่น</label><label class="option-label"><input type="checkbox" name="q7" value="มีความรู้ความสามารถ เป็นที่ปรึกษาได้จริง" class="option-input"> มีความรู้ความสามารถ เป็นที่ปรึกษาได้จริง</label><label class="option-label"><input type="checkbox" name="q7" value="ยังไม่เคยเจอประสบการณ์ที่ดี" class="option-input"> ยังไม่เคยเจอประสบการณ์ที่ดี</label>
+        </div></div>
 
-        <!-- Q8 -->
-        <div class="question-card">
-          <label class="question-label">8. มีสิ่งใดบ้าง ที่คุณคิดว่าตัวแทนประกันชีวิตน่าจะทำได้ดีกว่านี้?</label>
-          <span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="checkbox" name="q8" value="ลดการขายแบบตื้อหรือยัดเยียดผลิตภัณฑ์" class="option-input"> ลดการขายแบบตื้อหรือยัดเยียดผลิตภัณฑ์</label>
-            <label class="option-label"><input type="checkbox" name="q8" value="ควรมีความรู้เกี่ยวกับผลิตภัณฑ์ให้แม่นยำกว่านี้" class="option-input"> ควรมีความรู้เกี่ยวกับผลิตภัณฑ์และกฎหมายที่เกี่ยวข้องให้แม่นยำกว่านี้</label>
-            <label class="option-label"><input type="checkbox" name="q8" value="ควรเน้นการบริการหลังการขายมากกว่าแค่การหาลูกค้าใหม่" class="option-input"> ควรเน้นการบริการหลังการขายมากกว่าแค่การหาลูกค้าใหม่</label>
-            <label class="option-label"><input type="checkbox" name="q8" value="ควรติดต่อสื่อสารอย่างสม่ำเสมอแต่พอดี" class="option-input"> ควรติดต่อสื่อสารอย่างสม่ำเสมอแต่พอดี</label>
-            <label class="option-label"><input type="checkbox" name="q8" value="ควรเปิดเผยเงื่อนไขและข้อยกเว้นต่างๆ อย่างชัดเจนตั้งแต่แรก" class="option-input"> ควรเปิดเผยเงื่อนไขและข้อยกเว้นต่างๆ อย่างชัดเจนตั้งแต่แรก</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">8. มีสิ่งใดบ้าง ที่คุณคิดว่าตัวแทนประกันชีวิตน่าจะทำได้ดีกว่านี้?</label><span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="checkbox" name="q8" value="ลดการขายแบบตื้อหรือยัดเยียดผลิตภัณฑ์" class="option-input"> ลดการขายแบบตื้อหรือยัดเยียดผลิตภัณฑ์</label><label class="option-label"><input type="checkbox" name="q8" value="ควรมีความรู้เกี่ยวกับผลิตภัณฑ์ให้แม่นยำกว่านี้" class="option-input"> ควรมีความรู้เกี่ยวกับผลิตภัณฑ์และกฎหมายที่เกี่ยวข้องให้แม่นยำกว่านี้</label><label class="option-label"><input type="checkbox" name="q8" value="ควรเน้นการบริการหลังการขายมากกว่าแค่การหาลูกค้าใหม่" class="option-input"> ควรเน้นการบริการหลังการขายมากกว่าแค่การหาลูกค้าใหม่</label><label class="option-label"><input type="checkbox" name="q8" value="ควรติดต่อสื่อสารอย่างสม่ำเสมอแต่พอดี" class="option-input"> ควรติดต่อสื่อสารอย่างสม่ำเสมอแต่พอดี</label><label class="option-label"><input type="checkbox" name="q8" value="ควรเปิดเผยเงื่อนไขและข้อยกเว้นต่างๆ อย่างชัดเจนตั้งแต่แรก" class="option-input"> ควรเปิดเผยเงื่อนไขและข้อยกเว้นต่างๆ อย่างชัดเจนตั้งแต่แรก</label>
+        </div></div>
 
-        <!-- Q9 -->
-        <div class="question-card">
-          <label class="question-label">9. คุณมีตัวแทนประกันชีวิตที่รู้จักคุ้นเคยไหม? ถ้ามีเหตุใดจึงมี? ถ้าไม่มี เหตุใดจึงไม่มี?</label>
-          <span class="help-text">(เลือก 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="radio" name="q9" value="มี (เป็นญาติหรือเพื่อนสนิท)" class="option-input"> มี (เป็นญาติหรือเพื่อนสนิท)</label>
-            <label class="option-label"><input type="radio" name="q9" value="มี (เคยมาเสนองานและดูแลกันจนสนิท)" class="option-input"> มี (เป็นตัวแทนที่เคยมาเสนองานและดูแลกันจนสนิท)</label>
-            <label class="option-label"><input type="radio" name="q9" value="ไม่มี (ปกติซื้อผ่านช่องทางอื่น เช่น ธนาคาร/ออนไลน์)" class="option-input"> ไม่มี (ปกติซื้อผ่านช่องทางอื่น เช่น ธนาคาร/ออนไลน์)</label>
-            <label class="option-label"><input type="radio" name="q9" value="ไม่มี (ยังไม่เคยเจอตัวแทนที่ถูกใจหรือสร้างความน่าเชื่อถือได้)" class="option-input"> ไม่มี (ยังไม่เคยเจอตัวแทนที่ถูกใจหรือสร้างความน่าเชื่อถือได้)</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">9. คุณมีตัวแทนประกันชีวิตที่รู้จักคุ้นเคยไหม? ถ้ามีเหตุใดจึงมี? ถ้าไม่มี เหตุใดจึงไม่มี?</label><span class="help-text">(เลือก 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="radio" name="q9" value="มี (เป็นญาติหรือเพื่อนสนิท)" class="option-input"> มี (เป็นญาติหรือเพื่อนสนิท)</label><label class="option-label"><input type="radio" name="q9" value="มี (เคยมาเสนองานและดูแลกันจนสนิท)" class="option-input"> มี (เป็นตัวแทนที่เคยมาเสนองานและดูแลกันจนสนิท)</label><label class="option-label"><input type="radio" name="q9" value="ไม่มี (ปกติซื้อผ่านช่องทางอื่น เช่น ธนาคาร/ออนไลน์)" class="option-input"> ไม่มี (ปกติซื้อผ่านช่องทางอื่น เช่น ธนาคาร/ออนไลน์)</label><label class="option-label"><input type="radio" name="q9" value="ไม่มี (ยังไม่เคยเจอตัวแทนที่ถูกใจหรือสร้างความน่าเชื่อถือได้)" class="option-input"> ไม่มี (ยังไม่เคยเจอตัวแทนที่ถูกใจหรือสร้างความน่าเชื่อถือได้)</label>
+        </div></div>
 
-        <!-- Q10 -->
-        <div class="question-card">
-          <label class="question-label">10. คุณมีคำแนะนำใดๆ แก่ตัวแทนเกี่ยวกับอาชีพตัวแทนประกันชีวิต?</label>
-          <span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span>
-          <div class="space-y-2">
-            <label class="option-label"><input type="checkbox" name="q10" value="เน้นจรรยาบรรณวิชาชีพ มีความซื่อสัตย์เป็นที่ตั้ง" class="option-input"> เน้นจรรยาบรรณวิชาชีพ มีความซื่อสัตย์เป็นที่ตั้ง</label>
-            <label class="option-label"><input type="checkbox" name="q10" value="พัฒนาความรู้เรื่องการเงินและการลงทุนอย่างต่อเนื่อง" class="option-input"> พัฒนาความรู้เรื่องการเงินและการลงทุนอย่างต่อเนื่อง</label>
-            <label class="option-label"><input type="checkbox" name="q10" value="เข้าใจความต้องการของลูกค้าอย่างแท้จริงก่อนเสนอขาย" class="option-input"> เข้าใจความต้องการของลูกค้าอย่างแท้จริงก่อนเสนอขาย</label>
-            <label class="option-label"><input type="checkbox" name="q10" value="สร้างความสัมพันธ์ระยะยาวมากกว่าเน้นยอดขายระยะสั้น" class="option-input"> สร้างความสัมพันธ์ระยะยาวมากกว่าเน้นยอดขายระยะสั้น</label>
-            <label class="option-label"><input type="checkbox" name="q10" value="ใช้เทคโนโลยีมาช่วยในการบริการให้ทันสมัยและรวดเร็ว" class="option-input"> ใช้เทคโนโลยีมาช่วยในการบริการให้ทันสมัยและรวดเร็ว</label>
-          </div>
-        </div>
+        <div class="question-card"><label class="question-label">10. คุณมีคำแนะนำใดๆ แก่ตัวแทนเกี่ยวกับอาชีพตัวแทนประกันชีวิต?</label><span class="help-text">(เลือกได้มากกว่า 1 ข้อ)</span><div class="space-y-2">
+          <label class="option-label"><input type="checkbox" name="q10" value="เน้นจรรยาบรรณวิชาชีพ มีความซื่อสัตย์เป็นที่ตั้ง" class="option-input"> เน้นจรรยาบรรณวิชาชีพ มีความซื่อสัตย์เป็นที่ตั้ง</label><label class="option-label"><input type="checkbox" name="q10" value="พัฒนาความรู้เรื่องการเงินและการลงทุนอย่างต่อเนื่อง" class="option-input"> พัฒนาความรู้เรื่องการเงินและการลงทุนอย่างต่อเนื่อง</label><label class="option-label"><input type="checkbox" name="q10" value="เข้าใจความต้องการของลูกค้าอย่างแท้จริงก่อนเสนอขาย" class="option-input"> เข้าใจความต้องการของลูกค้าอย่างแท้จริงก่อนเสนอขาย</label><label class="option-label"><input type="checkbox" name="q10" value="สร้างความสัมพันธ์ระยะยาวมากกว่าเน้นยอดขายระยะสั้น" class="option-input"> สร้างความสัมพันธ์ระยะยาวมากกว่าเน้นยอดขายระยะสั้น</label><label class="option-label"><input type="checkbox" name="q10" value="ใช้เทคโนโลยีมาช่วยในการบริการให้ทันสมัยและรวดเร็ว" class="option-input"> ใช้เทคโนโลยีมาช่วยในการบริการให้ทันสมัยและรวดเร็ว</label>
+        </div></div>
       </div>
 
-      <!-- ปุ่ม Submit -->
       <div class="mt-8 text-center">
         <button type="button" id="submitBtn" onclick="handleFormSubmit()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-full text-xl shadow-lg transition duration-300 w-full md:w-auto">
           บันทึกแบบสอบถาม
@@ -194,7 +96,8 @@
       <h2 class="text-3xl font-bold text-green-600 mb-2">ขอบคุณที่ร่วมทำแบบสอบถาม</h2>
       <p class="text-gray-600 text-lg mb-8">ข้อมูลของท่านจะเป็นประโยชน์อย่างยิ่งในการพัฒนาบริการของเรา</p>
 
-      <div class="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+      <!-- กล่องรับ Point (โชว์เฉพาะทำครั้งแรก) -->
+      <div id="claimBox" class="hidden bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
         <div class="text-5xl mb-3 animate-bounce">🎁</div>
         <h3 class="text-3xl font-bold text-yellow-600 mb-2">คุณได้รับ 50 Point!</h3>
         <p class="text-gray-600 mb-6 text-lg">สิทธิพิเศษแทนคำขอบคุณ สามารถกดปุ่มด้านล่างเพื่อรับแต้มเข้าบัญชี LINE ของคุณได้ทันที</p>
@@ -203,8 +106,15 @@
         </button>
       </div>
 
+      <!-- กล่องเตือน (โชว์ถ้าเคยทำและรับแต้มไปแล้ว) -->
+      <div id="duplicateBox" class="hidden bg-gray-50 border-2 border-gray-200 rounded-2xl p-6 md:p-8 mb-8 shadow-sm">
+        <div class="text-5xl mb-3">⚠️</div>
+        <h3 class="text-2xl font-bold text-gray-700 mb-2">คุณเคยรับ Point ไปแล้ว</h3>
+        <p class="text-gray-600 text-lg">ระบบตรวจสอบพบว่าคุณเคยได้รับ 50 Point จากการทำแบบสอบถามนี้ไปแล้ว ขอบคุณที่ร่วมตอบแบบสอบถามอีกครั้งครับ</p>
+      </div>
+
       <div class="space-y-4 pt-6 border-t border-gray-100">
-        <p class="text-gray-500 font-medium text-lg">✨ แชร์แบบสอบถามนี้ให้คนที่คุณรัก เพื่อรับสิทธิพิเศษแบบเดียวกัน ✨</p>
+        <p class="text-gray-500 font-medium text-lg">✨ แชร์สิทธิพิเศษให้คนที่คุณรัก (ระบบส่งเมนูให้ในแชทแล้ว) ✨</p>
         <div class="flex flex-col sm:flex-row justify-center gap-4 mt-4">
           <button id="shareBtn" class="bg-[#00B900] hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition flex items-center justify-center">
             <span class="mr-2 text-xl">💬</span> แชร์ให้เพื่อน (เพิ่มเพื่อน)
@@ -214,7 +124,9 @@
           </button>
         </div>
         
-        <div class="mt-8 pt-4 text-center">
+        <p class="text-blue-600 font-medium mt-6 text-sm">💡 แนะนำ: บอทได้ส่งเมนูแชร์ไว้ในห้องแชทแล้ว<br>หากต้องการ คุณสามารถแชร์จากในห้องแชทต่อได้เลยครับ</p>
+        
+        <div class="mt-4 text-center">
           <button onclick="closeApp()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-10 rounded-full shadow transition">
             ❌ ปิดหน้าต่าง
           </button>
@@ -233,15 +145,15 @@
   </div>
 
   <script>
-    // 🟢 เอาลิงก์ Web App จาก Google Apps Script ของคุณ มาวางระหว่างเครื่องหมายคำพูดนี้
+    // 🟢 นำลิงก์ Web App (ที่ได้จาก Deploy ล่าสุด) มาวางตรงนี้
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
     
     let lineUserId = "";
     let appConfig = {};
     
     window.onload = function() {
-      // ดึงการตั้งค่าจากแท็บ Settings ผ่าน GAS_API_URL
-      fetch(GAS_API_URL, {
+      // ดึง Config จาก Apps Script + ใส่การกัน Cache (ป้องกันหน้าขาว)
+      fetch(GAS_API_URL + "?timestamp=" + new Date().getTime(), {
         method: 'POST',
         body: JSON.stringify({ action: "getConfig" })
       })
@@ -250,24 +162,22 @@
         if (response.success && response.data) {
           appConfig = response.data;
           
-          // ผูกลิงก์ปุ่มแชร์และ QR Code แบบเปิดหน้าต่างซ้อน
           document.getElementById('shareBtn').onclick = () => {
             let url = appConfig.SHARE_LIFF_URL;
             if(url) {
-              if (liff.isInClient()) liff.openWindow({ url: url, external: false });
+              if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
               else window.open(url, '_blank');
-            } else Swal.fire('ผิดพลาด', 'ไม่พบ SHARE_LIFF_URL ในชีต Settings', 'error');
+            } else Swal.fire('ผิดพลาด', 'ไม่พบ SHARE_LIFF_URL', 'error');
           };
           
           document.getElementById('qrBtn').onclick = () => {
             let url = appConfig.QR_LIFF_URL;
             if(url) {
-              if (liff.isInClient()) liff.openWindow({ url: url, external: false });
+              if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
               else window.open(url, '_blank');
-            } else Swal.fire('ผิดพลาด', 'ไม่พบ QR_LIFF_URL ในชีต Settings', 'error');
+            } else Swal.fire('ผิดพลาด', 'ไม่พบ QR_LIFF_URL', 'error');
           };
 
-          // เริ่มต้น LIFF SDK
           let targetLiffId = "";
           if (appConfig.FORM_LIFF_URL && appConfig.FORM_LIFF_URL.includes('liff.line.me/')) {
              targetLiffId = appConfig.FORM_LIFF_URL.split('liff.line.me/')[1];
@@ -316,15 +226,12 @@
       if (!lineUserId) {
         Swal.fire({
           title: 'ยังไม่ได้ยืนยันตัวตน LINE',
-          text: 'ระบบจำเป็นต้องเข้าสู่ระบบ LINE เพื่อมอบแต้มสะสมให้คุณครับ',
+          text: 'จำเป็นต้องเข้าสู่ระบบ LINE เพื่อรับแต้มสะสมครับ',
           icon: 'warning',
           confirmButtonText: 'เข้าสู่ระบบ LINE',
-          showCancelButton: true,
-          cancelButtonText: 'ยกเลิก'
+          showCancelButton: true
         }).then((result) => {
-          if (result.isConfirmed && typeof liff !== 'undefined') {
-            liff.login();
-          }
+          if (result.isConfirmed) liff.login();
         });
         return; 
       }
@@ -342,7 +249,6 @@
         userId: lineUserId 
       };
 
-      // ยิงข้อมูลเข้าสู่ระบบหลังบ้านด้วย Fetch API
       fetch(GAS_API_URL, {
         method: 'POST',
         body: JSON.stringify({ action: "submitSurvey", data: formData })
@@ -353,6 +259,14 @@
         if (response.success) {
           document.getElementById('surveyForm').classList.add('hidden');
           document.getElementById('thankYouSection').classList.remove('hidden');
+          
+          if (response.isFirstTime) {
+            document.getElementById('claimBox').classList.remove('hidden');
+            document.getElementById('duplicateBox').classList.add('hidden');
+          } else {
+            document.getElementById('claimBox').classList.add('hidden');
+            document.getElementById('duplicateBox').classList.remove('hidden');
+          }
           window.scrollTo(0, 0);
         } else {
           Swal.fire('ข้อผิดพลาด', "เกิดข้อผิดพลาด: " + response.error, 'error');
@@ -366,10 +280,7 @@
 
     function claimPoints() {
       const btn = document.getElementById('claimBtn');
-      if (!lineUserId) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบ LINE เพื่อรับแต้มครับ', 'warning');
-        return;
-      }
+      if (!lineUserId) return Swal.fire('แจ้งเตือน', 'กรุณาเข้าสู่ระบบ LINE', 'warning');
 
       btn.disabled = true;
       btn.innerHTML = "กำลังเตรียมรางวัล...";
@@ -386,13 +297,13 @@
         if(response.success) {
           Swal.fire({
             icon: 'success', title: 'รับ Point สำเร็จ!',
-            text: 'ระบบส่งข้อความยืนยัน 50 Point เข้าแชท LINE ของคุณเรียบร้อยแล้วครับ',
+            text: 'ระบบส่งข้อความยืนยัน 50 Point เข้าแชท LINE เรียบร้อยแล้วครับ',
             confirmButtonText: 'ตกลง'
           });
           btn.innerHTML = "✅ รับ 50 Point เรียบร้อยแล้ว";
           btn.classList.replace('bg-gradient-to-r', 'bg-gray-400');
         } else {
-          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถส่งข้อความได้ กรุณาลองอีกครั้ง', 'error');
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถส่งข้อความได้', 'error');
           btn.disabled = false; btn.innerHTML = "👇 กดรับ 50 Point เลย";
         }
       })
@@ -404,10 +315,10 @@
     }
     
     function closeApp() {
-      if (typeof liff !== 'undefined' && liff.isInClient && liff.isInClient()) {
+      if (typeof liff !== 'undefined' && liff.isInClient()) {
         liff.closeWindow();
       } else {
-        Swal.fire('แจ้งเตือน', 'สามารถกดกากบาท (X) เพื่อออกจากหน้านี้ได้เลยครับ', 'info');
+        Swal.fire('แจ้งเตือน', 'สามารถกดกากบาท (X) หรือปิดแท็บเพื่อออกจากหน้านี้ได้เลยครับ', 'info');
       }
     }
   </script>
