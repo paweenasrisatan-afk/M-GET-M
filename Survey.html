@@ -189,20 +189,26 @@
 
   <script>
     // 🟢 นำลิงก์ Web App (ที่ได้จาก Deploy ล่าสุด) มาวางตรงนี้
-    const GAS_API_URL = "https://script.google.com/macros/s/ใส่ลิงก์ของคุณที่นี่/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
     
     let lineUserId = "";
     let lineDisplayName = "";
-    let linePictureUrl = ""; // 🟢 เพิ่มตัวแปรสำหรับรูปโปรไฟล์
+    let linePictureUrl = ""; 
     let appConfig = {};
     let currentSurveyType = ""; 
     
-    window.onload = function() {
-      fetch(GAS_API_URL + "?timestamp=" + new Date().getTime(), {
-        method: 'POST', body: JSON.stringify({ action: "getConfig" })
-      })
-      .then(res => res.json())
-      .then(response => {
+    // 🟢 บังคับโหลดการตั้งค่าก่อน ถึงจะให้กดได้
+    window.onload = async function() {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.classList.remove('hidden');
+
+      try {
+        let res = await fetch(GAS_API_URL + "?timestamp=" + new Date().getTime(), {
+          method: 'POST',
+          body: JSON.stringify({ action: "getConfig" })
+        });
+        let response = await res.json();
+        
         if (response.success && response.data) {
           appConfig = response.data;
           
@@ -222,6 +228,7 @@
             } else Swal.fire('ผิดพลาด', 'ไม่พบ QR_LIFF_URL', 'error');
           };
 
+          // ดึง LIFF ID จากแท็บ Settings ของคุณ
           let targetLiffId = "";
           if (appConfig.FORM_LIFF_URL && appConfig.FORM_LIFF_URL.includes('liff.line.me/')) {
              targetLiffId = appConfig.FORM_LIFF_URL.split('liff.line.me/')[1];
@@ -229,21 +236,23 @@
           if(!targetLiffId) targetLiffId = appConfig.MAIN_LIFF_ID;
 
           if (targetLiffId && typeof liff !== 'undefined') {
-            liff.init({ liffId: targetLiffId }).then(() => {
-              if (liff.isLoggedIn()) {
-                liff.getProfile().then(profile => { 
-                  lineUserId = profile.userId; 
-                  lineDisplayName = profile.displayName; 
-                  linePictureUrl = profile.pictureUrl; // 🟢 ดึงรูปโปรไฟล์
-                });
-              } else {
-                liff.login();
-              }
-            }).catch(err => console.error("LIFF Init Error:", err));
+            await liff.init({ liffId: targetLiffId });
+            if (liff.isLoggedIn()) {
+              let profile = await liff.getProfile();
+              lineUserId = profile.userId; 
+              lineDisplayName = profile.displayName; 
+              linePictureUrl = profile.pictureUrl; 
+            } else {
+              liff.login();
+            }
           }
         }
-      })
-      .catch(err => console.error("Config Load Error:", err));
+      } catch(err) {
+        console.error("Config Load Error:", err);
+        Swal.fire('ข้อผิดพลาด', 'โหลดการตั้งค่าไม่สำเร็จ กรุณาเช็กสิทธิ์ Deploy ว่าเป็น Anyone หรือไม่', 'error');
+      } finally {
+        overlay.classList.add('hidden');
+      }
     };
 
     function startSurvey(type) {
@@ -310,7 +319,7 @@
         q9: getRadioValue(activeContainer, 'q9'), q10: getCheckboxValues(activeContainer, 'q10'),
         userId: lineUserId,
         displayName: lineDisplayName,
-        pictureUrl: linePictureUrl // 🟢 ส่งรูปโปรไฟล์ไปหลังบ้าน
+        pictureUrl: linePictureUrl 
       };
 
       fetch(GAS_API_URL, {
