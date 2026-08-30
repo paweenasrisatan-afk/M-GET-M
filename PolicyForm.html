@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ลงทะเบียนกรมธรรม์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+    .input-field { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; margin-top: 0.25rem; }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+  <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-center text-blue-800 mb-6">บันทึกข้อมูลกรมธรรม์</h1>
+    
+    <div class="flex justify-center gap-4 mb-6">
+      <button onclick="toggleForm('life')" id="btnLife" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">ประกันชีวิต</button>
+      <button onclick="toggleForm('auto')" id="btnAuto" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-bold">ประกันรถยนต์</button>
+    </div>
+
+    <form id="policyForm" onsubmit="return false;">
+      <input type="hidden" id="policyType" value="life">
+      
+      <!-- ข้อมูลส่วนตัว (แสดงตลอด) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
+        <div><label class="font-semibold">ชื่อ-นามสกุล</label><input type="text" id="name" class="input-field" required></div>
+        <div><label class="font-semibold">เบอร์โทรศัพท์</label><input type="tel" id="phone" class="input-field" required></div>
+      </div>
+
+      <!-- ฟอร์มประกันชีวิต -->
+      <div id="formLife" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label class="font-semibold">ชื่อเล่น</label><input type="text" id="nickname" class="input-field"></div>
+        <div><label class="font-semibold">เลขบัตรประชาชน</label><input type="text" id="idCard" class="input-field" maxlength="13"></div>
+        <div class="md:col-span-2"><label class="font-semibold">ที่อยู่</label><textarea id="address" class="input-field"></textarea></div>
+        <div><label class="font-semibold">แบบประกัน</label>
+          <select id="lifePlan" class="input-field">
+            <option value="สะสมทรัพย์ 10/5">สะสมทรัพย์ 10/5</option>
+            <option value="ตลอดชีพ 99/20">ตลอดชีพ 99/20</option>
+            <option value="ประกันสุขภาพเหมาจ่าย">ประกันสุขภาพเหมาจ่าย</option>
+          </select>
+        </div>
+        <div><label class="font-semibold">วันเริ่มคุ้มครอง</label><input type="date" id="startDate" class="input-field"></div>
+        <div><label class="font-semibold">วันครบกำหนด</label><input type="date" id="endDate" class="input-field"></div>
+      </div>
+
+      <!-- ฟอร์มประกันรถยนต์ -->
+      <div id="formAuto" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label class="font-semibold">หมายเลขทะเบียนรถ</label><input type="text" id="licensePlate" class="input-field"></div>
+        <div><label class="font-semibold">ประเภทรถ</label>
+          <select id="carType" class="input-field">
+            <option value="รถเก๋ง">รถเก๋ง</option><option value="รถกระบะ">รถกระบะ</option>
+            <option value="รถตู้">รถตู้</option><option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
+            <option value="รถอื่นๆ">รถอื่นๆ</option>
+          </select>
+        </div>
+        <div><label class="font-semibold">ชนิดรถ (เช่น รถไฟฟ้า)</label><input type="text" id="carSubtype" class="input-field"></div>
+        <div><label class="font-semibold">ประเภทประกัน</label>
+          <select id="insType" class="input-field">
+            <option value="ป.1">ป.1</option><option value="ป.1+">ป.1+</option>
+            <option value="ป.2+">ป.2+</option><option value="ป.3+">ป.3+</option><option value="ป.3">ป.3</option>
+          </select>
+        </div>
+        <div><label class="font-semibold">วันจดทะเบียนรถ</label><input type="date" id="regDate" class="input-field"></div>
+        <div><label class="font-semibold">วันครบกำหนดภาษี</label><input type="date" id="taxEndDate" class="input-field"></div>
+        <div><label class="font-semibold">วัน พ.ร.บ. หมดอายุ</label><input type="date" id="prbEndDate" class="input-field"></div>
+        <div><label class="font-semibold">วันประกันรถครบกำหนด</label><input type="date" id="insEndDate" class="input-field"></div>
+        <div class="md:col-span-2"><label class="font-semibold">หมายเหตุ</label><input type="text" id="note" class="input-field"></div>
+      </div>
+
+      <button onclick="submitData()" class="mt-8 w-full bg-green-600 text-white font-bold py-3 rounded-lg text-lg">บันทึกข้อมูล</button>
+    </form>
+  </div>
+
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg font-bold text-lg">กำลังบันทึกข้อมูล...</div>
+  </div>
+
+  <script>
+    const GAS_API_URL = "https://script.google.com/macros/s/ใส่ลิงก์ของคุณที่นี่/exec";
+    let lineProfile = { userId: "", displayName: "", pictureUrl: "" };
+
+    window.onload = async () => {
+      // ดึง Config และ Init LIFF เหมือนหน้า Survey ปกติ
+      try {
+        let res = await fetch(GAS_API_URL + "?action=getConfig", { method: 'POST' });
+        let result = await res.json();
+        let liffId = result.data.MAIN_LIFF_ID; // สามารถกำหนด LIFF ID แยกสำหรับฟอร์มนี้ได้
+        
+        await liff.init({ liffId: liffId });
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          lineProfile = { userId: profile.userId, displayName: profile.displayName, pictureUrl: profile.pictureUrl };
+        } else { liff.login(); }
+      } catch(e) { console.error(e); }
+    };
+
+    function toggleForm(type) {
+      document.getElementById('policyType').value = type;
+      if (type === 'life') {
+        document.getElementById('formLife').classList.remove('hidden');
+        document.getElementById('formAuto').classList.add('hidden');
+        document.getElementById('btnLife').classList.replace('bg-gray-300', 'bg-blue-600');
+        document.getElementById('btnLife').classList.replace('text-gray-700', 'text-white');
+        document.getElementById('btnAuto').classList.replace('bg-orange-500', 'bg-gray-300');
+        document.getElementById('btnAuto').classList.replace('text-white', 'text-gray-700');
+      } else {
+        document.getElementById('formAuto').classList.remove('hidden');
+        document.getElementById('formLife').classList.add('hidden');
+        document.getElementById('btnAuto').classList.replace('bg-gray-300', 'bg-orange-500');
+        document.getElementById('btnAuto').classList.replace('text-gray-700', 'text-white');
+        document.getElementById('btnLife').classList.replace('bg-blue-600', 'bg-gray-300');
+        document.getElementById('btnLife').classList.replace('text-white', 'text-gray-700');
+      }
+    }
+
+    function submitData() {
+      const type = document.getElementById('policyType').value;
+      const data = {
+        action: "submitPolicy",
+        policyType: type,
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        userId: lineProfile.userId,
+        displayName: lineProfile.displayName,
+        pictureUrl: lineProfile.pictureUrl
+      };
+
+      if (type === 'life') {
+        data.nickname = document.getElementById('nickname').value;
+        data.idCard = document.getElementById('idCard').value;
+        data.address = document.getElementById('address').value;
+        data.lifePlan = document.getElementById('lifePlan').value;
+        data.startDate = document.getElementById('startDate').value;
+        data.endDate = document.getElementById('endDate').value;
+      } else {
+        data.licensePlate = document.getElementById('licensePlate').value;
+        data.carType = document.getElementById('carType').value;
+        data.carSubtype = document.getElementById('carSubtype').value;
+        data.insType = document.getElementById('insType').value;
+        data.regDate = document.getElementById('regDate').value;
+        data.taxEndDate = document.getElementById('taxEndDate').value;
+        data.prbEndDate = document.getElementById('prbEndDate').value;
+        data.insEndDate = document.getElementById('insEndDate').value;
+        data.note = document.getElementById('note').value;
+      }
+
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+
+      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(data) })
+        .then(res => res.json())
+        .then(res => {
+          document.getElementById('loadingOverlay').classList.add('hidden');
+          if (res.success) {
+            Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อย', 'success').then(() => { document.getElementById('policyForm').reset(); });
+          } else {
+            Swal.fire('ผิดพลาด', res.error, 'error');
+          }
+        });
+    }
+  </script>
+</body>
+</html>
+
