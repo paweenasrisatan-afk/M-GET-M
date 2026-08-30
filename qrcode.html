@@ -16,7 +16,7 @@
 </head>
 <body>
   
-  <div id="loading" style="margin-top: 50px; color: #666;">กำลังสร้าง QR Code ส่วนตัวของคุณ...</div>
+  <div id="loading" style="margin-top: 50px; color: #666;">กำลังดึงข้อมูลระบบ...</div>
   
   <div class="card" id="qrContainer" style="display: none;">
     <h2>Exclusive QR Code</h2>
@@ -29,21 +29,50 @@
   </div>
 
   <script>
-    // ⚠️ 1. ใส่ LIFF ID ของแคมเปญหลัก (ตัวที่ใช้กดลิงก์แชร์)
-    const mainLiffId = "2010894828-FWOl6zme"; 
+    // ⚠️ ใส่ลิงก์ GAS ตรงนี้ เพื่อให้ระบบใช้เป็นกุญแจวิ่งไปดึงค่าตัวแปรอื่นๆ จากชีต Settings
+    const gasAppUrl = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec"; 
+
+    // ตัวแปรที่จะถูกดึงมาจากแท็บ Settings อัตโนมัติ
+    let mainLiffId = ""; 
+    let qrLiffId = ""; 
     
-    // ⚠️ 2. ใส่ LIFF ID ตัวใหม่ที่คุณเพิ่งสร้างในขั้นตอนที่ 1
-    const qrLiffId = "2010894828-9WloHvv9"; 
-    
-    async function init() {
+    // 🟢 1. ฟังก์ชันดึงค่าจาก Settings ก่อนเริ่มทำงาน
+    async function loadConfigAndStart() {
       try {
+        const response = await fetch(gasAppUrl + "?timestamp=" + new Date().getTime(), {
+          method: 'POST',
+          body: JSON.stringify({ action: "getConfig" })
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          // ดึงค่าจากชีตมาใส่ในตัวแปร
+          mainLiffId = result.data.MAIN_LIFF_ID; 
+          qrLiffId = result.data.QR_LIFF_ID;
+          
+          // เมื่อได้ค่าครบแล้ว ค่อยให้เริ่มสร้าง QR Code
+          initQR();
+        } else {
+          document.getElementById('loading').innerText = "ดึงข้อมูลล้มเหลว กรุณาลองใหม่";
+        }
+      } catch (error) {
+        document.getElementById('loading').innerText = "โหลด Config Error: " + error.message;
+      }
+    }
+
+    // 🟢 2. ฟังก์ชันเริ่มทำงาน LIFF และสร้างรูป QR Code
+    async function initQR() {
+      document.getElementById('loading').innerText = "กำลังสร้าง QR Code ส่วนตัวของคุณ...";
+      try {
+        if (!qrLiffId) throw new Error("ไม่พบ QR_LIFF_ID ในแท็บ Settings");
+
         await liff.init({ liffId: qrLiffId }); 
         if (!liff.isLoggedIn()) { liff.login(); return; }
 
         // ดึงข้อมูลลูกค้าเพื่อนำไปฝังในลิงก์ Tracking
         const profile = await liff.getProfile();
         
-        // สร้างลิงก์แชร์แบบเดียวกับปุ่มส่งคอนแทค
+        // สร้างลิงก์แชร์โดยดึง MAIN_LIFF_ID มาใช้เป็นตัวรับค่า
         const trackingLink = "https://liff.line.me/" + mainLiffId + 
                              "?refId=" + encodeURIComponent(profile.userId) + 
                              "&refName=" + encodeURIComponent(profile.displayName) + 
@@ -58,11 +87,12 @@
         document.getElementById('qrContainer').style.display = 'block';
 
       } catch (err) {
-        document.getElementById('loading').innerText = "Error: " + err.message;
+        document.getElementById('loading').innerText = "LIFF Error: " + err.message;
       }
     }
     
-    init();
+    // สั่งให้ดึง Config ตอนโหลดหน้าเว็บ
+    window.onload = loadConfigAndStart;
   </script>
 </body>
 </html>
