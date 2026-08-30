@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ลงทะเบียนกรมธรรม์</title>
+  <title>ระบบจัดการข้อมูลกรมธรรม์</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -18,7 +18,7 @@
   <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-8">
     <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-6">ระบบจัดการข้อมูลกรมธรรม์</h1>
 
-    <!-- 🟢 ช่องค้นหาข้อมูลเดิม (อยู่บนสุดเสมอ) -->
+    <!-- 🔍 ช่องค้นหาข้อมูลเดิม -->
     <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl mb-6">
       <label class="font-semibold text-indigo-900 block mb-2">ค้นหาข้อมูลเก่า / อัปเดตกรมธรรม์</label>
       <div class="flex flex-col sm:flex-row gap-3">
@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <!-- 🟢 ปุ่มสำหรับเพิ่มข้อมูลใหม่ (จะหายไปเมื่อฟอร์มเปิด) -->
+    <!-- ➕ ปุ่มสำหรับเพิ่มข้อมูลใหม่ (แสดงเมื่อยังไม่เปิดฟอร์ม) -->
     <div id="actionSection" class="text-center mb-6 py-8 border-2 border-dashed border-gray-300 rounded-xl">
       <p class="text-gray-500 mb-4">หรือหากเป็นลูกค้ารายใหม่</p>
       <button onclick="showNewForm()" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition transform hover:scale-105">
@@ -39,7 +39,7 @@
       </button>
     </div>
 
-    <!-- 🟢 คอนเทนเนอร์เก็บฟอร์มทั้งหมด (ซ่อนไว้ตั้งแต่แรก) -->
+    <!-- 📝 คอนเทนเนอร์เก็บฟอร์มทั้งหมด (ซ่อนไว้ตั้งแต่แรก) -->
     <div id="formContainer" class="hidden">
       <!-- ปุ่มสลับฟอร์ม -->
       <div class="flex flex-col sm:flex-row justify-center gap-4 mb-6">
@@ -47,12 +47,16 @@
         <button onclick="toggleForm('auto')" id="btnAuto" class="bg-gray-300 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-md transition">🚗 ประกันรถยนต์</button>
       </div>
 
-      <input type="hidden" id="hiddenUserId" value="">
-<input type="hidden" id="hiddenDisplayName" value="">
-<input type="hidden" id="hiddenPictureUrl" value="">
+      <form id="policyForm" onsubmit="return false;">
+        <input type="hidden" id="policyType" value="life">
+        <input type="hidden" id="editRowIndex" value="">
+        
+        <!-- 🔒 ช่องซ่อนสำหรับรักษายอด User ID เดิมไว้ไม่ให้หาย -->
+        <input type="hidden" id="hiddenUserId" value="">
+        <input type="hidden" id="hiddenDisplayName" value="">
+        <input type="hidden" id="hiddenPictureUrl" value="">
 
-
-        <!-- ข้อมูลส่วนตัว (แสดงเฉพาะเบอร์โทรที่ใช้ร่วมกัน) -->
+        <!-- ข้อมูลส่วนตัว (เบอร์โทร) -->
         <div class="mb-6 bg-blue-50 p-5 rounded-xl border border-blue-100 flex items-center justify-between">
           <div class="flex-1">
             <label class="font-semibold text-blue-900">เบอร์โทรศัพท์ติดต่อ *</label>
@@ -126,11 +130,113 @@
   </div>
 
   <script>
-    // ... (ส่วนโค้ดอื่นๆ ด้านบนคงเดิม) ...
+    // ⚠️ ตรวจสอบลิงก์ Web App ของคุณให้ถูกต้องตรงกัน
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
+    
     let lineProfile = { userId: "", displayName: "", pictureUrl: "" };
     let currentSearchResults = [];
 
-    // 🟢 นำข้อมูลที่ค้นหาเจอมาใส่ในฟอร์ม (รวมถึง User ID เดิม)
+    window.onload = async () => {
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+      document.getElementById('loadingText').innerText = "กำลังตรวจสอบการตั้งค่า...";
+      try {
+        let res = await fetch(GAS_API_URL + "?timestamp=" + new Date().getTime(), { method: 'POST', body: JSON.stringify({ action: "getConfig" }) });
+        let result = await res.json();
+        let targetLiffId = result.data.POLICY_LIFF_URL ? result.data.POLICY_LIFF_URL.split('liff.line.me/')[1] : result.data.MAIN_LIFF_ID;
+        
+        await liff.init({ liffId: targetLiffId });
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          lineProfile = { userId: profile.userId, displayName: profile.displayName, pictureUrl: profile.pictureUrl };
+        } else { liff.login(); }
+      } catch(e) { console.error(e); } finally {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+      }
+    };
+
+    function changeSearchPlaceholder() {
+      const t = document.getElementById('searchType').value;
+      document.getElementById('searchInput').placeholder = (t === 'life') ? "พิมพ์ ชื่อ, เลขบัตร หรือ เบอร์โทร" : "พิมพ์ ทะเบียนรถ หรือ เบอร์โทร";
+    }
+
+    function calculateNetPremium(val) {
+      let total = parseFloat(val); document.getElementById('netPremium').value = (total > 0) ? (total / 1.07428).toFixed(2) : "";
+    }
+    function calculateLifeNetPremium(val) {
+      let total = parseFloat(val); document.getElementById('lifeNetPremium').value = (total > 0) ? (total / 1.07428).toFixed(2) : "";
+    }
+
+    function showNewForm() {
+      document.getElementById('actionSection').classList.add('hidden');
+      document.getElementById('formContainer').classList.remove('hidden');
+      clearFormValues();
+      toggleForm(document.getElementById('searchType').value);
+    }
+
+    function closeForm() {
+      document.getElementById('formContainer').classList.add('hidden');
+      document.getElementById('actionSection').classList.remove('hidden');
+      clearFormValues();
+    }
+
+    function toggleForm(type) {
+      document.getElementById('policyType').value = type;
+      if (type === 'life') {
+        document.getElementById('formLife').classList.remove('hidden'); document.getElementById('formAuto').classList.add('hidden');
+        document.getElementById('btnLife').className = "bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-md transition";
+        document.getElementById('btnAuto').className = "bg-gray-300 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-md transition";
+      } else {
+        document.getElementById('formAuto').classList.remove('hidden'); document.getElementById('formLife').classList.add('hidden');
+        document.getElementById('btnAuto').className = "bg-orange-500 text-white px-8 py-3 rounded-xl font-bold shadow-md transition";
+        document.getElementById('btnLife').className = "bg-gray-300 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-md transition";
+      }
+    }
+
+    // 🔍 ฟังก์ชันค้นหา
+    function searchData() {
+      const keyword = document.getElementById('searchInput').value.trim();
+      if(!keyword) return Swal.fire('แจ้งเตือน', 'กรุณาพิมพ์คำค้นหา', 'warning');
+
+      const type = document.getElementById('searchType').value;
+      document.getElementById('loadingText').innerText = "กำลังค้นหาข้อมูล...";
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "searchPolicy", policyType: type, keyword: keyword })
+      })
+      .then(res => res.json())
+      .then(res => {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        if (res.success && res.results.length > 0) {
+          currentSearchResults = res.results;
+          if(res.results.length === 1) {
+             selectResult(0); 
+          } else {
+             let html = '<div class="text-left">';
+             res.results.forEach((r, idx) => {
+               let txt = type === 'life' ? `คุณ ${r.name} (${r.phone})` : `ทะเบียน ${r.licensePlate} (${r.phone})`;
+               html += `<button class="w-full bg-blue-100 hover:bg-blue-200 text-blue-900 p-3 mb-2 rounded-lg font-bold" onclick="selectResult(${idx})">${txt}</button>`;
+             });
+             html += '</div>';
+             Swal.fire({ title: 'พบข้อมูลหลายรายการ', html: html, showConfirmButton: false, showCancelButton: true, cancelButtonText: 'ยกเลิก' });
+          }
+        } else {
+          Swal.fire({
+            title: 'ไม่พบข้อมูล',
+            text: 'ระบบไม่พบข้อมูลที่คุณค้นหา คุณสามารถกดปุ่ม "เพิ่มข้อมูลกรมธรรม์ใหม่" ด้านล่างเพื่อสร้างรายการใหม่ได้เลยครับ',
+            icon: 'info',
+            confirmButtonText: 'รับทราบ'
+          });
+          closeForm();
+        }
+      }).catch(err => {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบค้นหาได้', 'error');
+      });
+    }
+
+    // 📋 นำข้อมูลที่เจอมาใส่ในฟอร์ม
     function selectResult(idx) {
       const type = document.getElementById('searchType').value;
       const r = currentSearchResults[idx];
@@ -142,7 +248,7 @@
 
       document.getElementById('editRowIndex').value = r.rowIndex;
       
-      // 🔒 เก็บค่า User ID เดิมไว้ในตัวแปรซ่อน (hidden) เพื่อไม่ให้หายตอนกดบันทึกซ้ำ
+      // ล็อกค่า User ID เดิมไว้ปลอดภัย 100%
       document.getElementById('hiddenUserId').value = r.userId || "";
       document.getElementById('hiddenDisplayName').value = r.displayName || "";
       document.getElementById('hiddenPictureUrl').value = r.pictureUrl || "";
@@ -178,7 +284,19 @@
       }
     }
 
-    // 🟢 ส่งข้อมูลไปบันทึก หรือ อัปเดต (ส่ง User ID เดิมไปด้วย)
+    function clearFormValues() {
+      document.getElementById('policyForm').reset();
+      document.getElementById('editRowIndex').value = "";
+      document.getElementById('netPremium').value = "";
+      document.getElementById('lifeNetPremium').value = "";
+      document.getElementById('hiddenUserId').value = "";
+      document.getElementById('hiddenDisplayName').value = "";
+      document.getElementById('hiddenPictureUrl').value = "";
+      document.getElementById('btnSubmit').innerText = "💾 บันทึกเป็นข้อมูลใหม่";
+      document.getElementById('btnSubmit').className = "mt-10 w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg";
+    }
+
+    // 💾 ส่งข้อมูลบันทึกหรืออัปเดต
     function submitData() {
       const phone = document.getElementById('phone').value.trim();
       if (!phone) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก เบอร์โทรศัพท์', 'warning');
@@ -188,8 +306,6 @@
         action: "submitPolicy",
         policyType: type, phone: phone,
         rowIndex: document.getElementById('editRowIndex').value,
-        
-        // 🔒 ส่งค่า User ID เดิมที่ติดมาตอนค้นหา (ถ้ามี) หรือใช้ค่าจากคนที่กำลังเปิดหน้าเว็บอยู่
         userId: document.getElementById('hiddenUserId').value || lineProfile.userId,
         displayName: document.getElementById('hiddenDisplayName').value || lineProfile.displayName,
         pictureUrl: document.getElementById('hiddenPictureUrl').value || lineProfile.pictureUrl
@@ -238,7 +354,6 @@
       });
     }
   </script>
-
 </body>
 </html>
 
