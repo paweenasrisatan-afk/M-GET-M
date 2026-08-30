@@ -16,89 +16,107 @@
 </head>
 <body class="p-4 md:p-8">
   <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-8">
-    <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-4">ระบบจัดการข้อมูลกรมธรรม์</h1>
-    
-    <!-- ปุ่มสลับฟอร์ม -->
-    <div class="flex flex-col sm:flex-row justify-center gap-4 mb-6">
-      <button onclick="toggleForm('life')" id="btnLife" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-md transition">🏥 ประกันชีวิต</button>
-      <button onclick="toggleForm('auto')" id="btnAuto" class="bg-gray-300 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-md transition">🚗 ประกันรถยนต์</button>
+    <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-6">ระบบจัดการข้อมูลกรมธรรม์</h1>
+
+    <!-- 🟢 ช่องค้นหาข้อมูลเดิม (อยู่บนสุดเสมอ) -->
+    <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl mb-6">
+      <label class="font-semibold text-indigo-900 block mb-2">ค้นหาข้อมูลเก่า / อัปเดตกรมธรรม์</label>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <select id="searchType" class="input-field mt-0 sm:w-1/3 border-indigo-300 font-bold text-indigo-800" onchange="changeSearchPlaceholder()">
+          <option value="life">🏥 ค้นหา ประกันชีวิต</option>
+          <option value="auto">🚗 ค้นหา ประกันรถยนต์</option>
+        </select>
+        <input type="text" id="searchInput" class="input-field mt-0 flex-1" placeholder="พิมพ์ ชื่อ, เลขบัตร หรือ เบอร์โทร">
+        <button onclick="searchData()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-lg shadow whitespace-nowrap">🔍 ค้นหา</button>
+      </div>
     </div>
 
-    <!-- 🟢 ช่องค้นหาข้อมูลเดิม -->
-    <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl mb-6 flex gap-3">
-      <input type="text" id="searchInput" class="input-field mt-0 flex-1" placeholder="🔍 ค้นหา ทะเบียนรถ, ชื่อ, หรือ เบอร์โทร">
-      <button onclick="searchData()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 rounded-lg shadow">ค้นหา</button>
-    </div>
-
-    <form id="policyForm" onsubmit="return false;">
-      <input type="hidden" id="policyType" value="life">
-      <input type="hidden" id="editRowIndex" value=""> <!-- เก็บเลขแถวกรณีแก้ไข -->
-
-      <!-- ข้อมูลส่วนตัว (แสดงเฉพาะเบอร์โทรที่ใช้ร่วมกัน) -->
-      <div class="mb-6 bg-blue-50 p-5 rounded-xl border border-blue-100 flex items-center justify-between">
-        <div class="flex-1">
-          <label class="font-semibold text-blue-900">เบอร์โทรศัพท์ติดต่อ *</label>
-          <input type="tel" id="phone" class="input-field" placeholder="กรอกเบอร์โทรศัพท์" required>
-        </div>
-        <button type="button" onclick="clearForm()" class="ml-4 mt-6 text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">ล้างฟอร์ม</button>
-      </div>
-
-      <!-- ==================== ฟอร์มประกันชีวิต ==================== -->
-      <div id="formLife" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div class="md:col-span-2"><label class="font-semibold text-gray-700">ชื่อ-นามสกุล ผู้เอาประกัน *</label><input type="text" id="name" class="input-field"></div>
-        <div><label class="font-semibold text-gray-700">ชื่อเล่น</label><input type="text" id="nickname" class="input-field"></div>
-        <div><label class="font-semibold text-gray-700">เลขบัตรประชาชน</label><input type="text" id="idCard" class="input-field" maxlength="13"></div>
-        <div class="md:col-span-2"><label class="font-semibold text-gray-700">ที่อยู่</label><textarea id="address" class="input-field" rows="2"></textarea></div>
-        <div><label class="font-semibold text-gray-700">แบบประกัน</label>
-          <select id="lifePlan" class="input-field">
-            <option value="สะสมทรัพย์ 10/5">สะสมทรัพย์ 10/5</option>
-            <option value="ตลอดชีพ 99/20">ตลอดชีพ 99/20</option>
-            <option value="ประกันสุขภาพเหมาจ่าย">ประกันสุขภาพเหมาจ่าย</option>
-            <option value="ประกันควบการลงทุน (Unit Linked)">ประกันควบการลงทุน (Unit Linked)</option>
-            <option value="อื่นๆ">อื่นๆ</option>
-          </select>
-        </div>
-        <div><label class="font-semibold text-gray-700">ทุนประกัน</label><input type="number" id="sumInsured" class="input-field" placeholder="ตัวเลขทุนประกัน"></div>
-        
-        <div><label class="font-semibold text-gray-700">เบี้ยประกันรวม</label><input type="number" id="lifeTotalPremium" class="input-field border-blue-400" placeholder="กรอกเบี้ยรวม" oninput="calculateLifeNetPremium(this.value)"></div>
-        <div><label class="font-semibold text-gray-700">เบี้ยสุทธิ <span class="text-xs text-gray-500">(ออโต้)</span></label><input type="text" id="lifeNetPremium" class="input-field bg-gray-100 text-gray-500 font-bold" readonly placeholder="0.00"></div>
-
-        <div><label class="font-semibold text-gray-700">วันเริ่มคุ้มครอง</label><input type="date" id="startDate" class="input-field"></div>
-        <div><label class="font-semibold text-gray-700">วันครบกำหนด</label><input type="date" id="endDate" class="input-field"></div>
-      </div>
-
-      <!-- ==================== ฟอร์มประกันรถยนต์ ==================== -->
-      <div id="formAuto" class="hidden grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div><label class="font-semibold text-gray-700">หมายเลขทะเบียนรถ</label><input type="text" id="licensePlate" class="input-field"></div>
-        <div><label class="font-semibold text-gray-700">ประเภทรถ</label>
-          <select id="carType" class="input-field">
-            <option value="รถเก๋ง">รถเก๋ง</option><option value="รถกระบะ">รถกระบะ</option>
-            <option value="รถตู้">รถตู้</option><option value="รถจักรยานยนต์">รถจักรยานยนต์</option><option value="รถอื่นๆ">รถอื่นๆ</option>
-          </select>
-        </div>
-        <div class="md:col-span-2"><label class="font-semibold text-gray-700">ชนิดรถ (เช่น รถไฟฟ้า BYD)</label><input type="text" id="carSubtype" class="input-field" placeholder="เว้นว่างได้"></div>
-        
-        <div><label class="font-semibold text-gray-700">เบี้ยรวม (รวมภาษี/อากร)</label><input type="number" id="totalPremium" class="input-field border-green-400" placeholder="กรอกตัวเลขเบี้ยรวม" oninput="calculateNetPremium(this.value)"></div>
-        <div><label class="font-semibold text-gray-700">เบี้ยสุทธิ <span class="text-xs text-gray-500">(ออโต้)</span></label><input type="text" id="netPremium" class="input-field bg-gray-100 text-gray-500 font-bold" readonly placeholder="0.00"></div>
-
-        <div><label class="font-semibold text-gray-700">ประเภทประกัน</label>
-          <select id="insType" class="input-field">
-            <option value="ป.1">ป.1</option><option value="ป.1+">ป.1+</option>
-            <option value="ป.2">ป.2</option><option value="ป.2+">ป.2+</option>
-            <option value="ป.3">ป.3</option><option value="ป.3+">ป.3+</option><option value="ประกันอื่นๆ">ประกันอื่นๆ</option>
-          </select>
-        </div>
-        <div><label class="font-semibold text-gray-700">วันจดทะเบียนรถ</label><input type="date" id="regDate" class="input-field"></div>
-        <div><label class="font-semibold text-red-600">วันครบกำหนดภาษี</label><input type="date" id="taxEndDate" class="input-field border-red-300"></div>
-        <div><label class="font-semibold text-red-600">วัน พ.ร.บ. หมดอายุ</label><input type="date" id="prbEndDate" class="input-field border-red-300"></div>
-        <div><label class="font-semibold text-red-600">วันประกันรถครบกำหนด</label><input type="date" id="insEndDate" class="input-field border-red-300"></div>
-        <div class="md:col-span-2"><label class="font-semibold text-gray-700">หมายเหตุ</label><input type="text" id="note" class="input-field" placeholder="รายละเอียดเพิ่มเติม"></div>
-      </div>
-
-      <button id="btnSubmit" onclick="submitData()" class="mt-10 w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg transition transform hover:scale-[1.02]">
-        💾 บันทึกเป็นข้อมูลใหม่
+    <!-- 🟢 ปุ่มสำหรับเพิ่มข้อมูลใหม่ (จะหายไปเมื่อฟอร์มเปิด) -->
+    <div id="actionSection" class="text-center mb-6 py-8 border-2 border-dashed border-gray-300 rounded-xl">
+      <p class="text-gray-500 mb-4">หรือหากเป็นลูกค้ารายใหม่</p>
+      <button onclick="showNewForm()" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition transform hover:scale-105">
+        ➕ เพิ่มข้อมูลกรมธรรม์ใหม่
       </button>
-    </form>
+    </div>
+
+    <!-- 🟢 คอนเทนเนอร์เก็บฟอร์มทั้งหมด (ซ่อนไว้ตั้งแต่แรก) -->
+    <div id="formContainer" class="hidden">
+      <!-- ปุ่มสลับฟอร์ม -->
+      <div class="flex flex-col sm:flex-row justify-center gap-4 mb-6">
+        <button onclick="toggleForm('life')" id="btnLife" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-md transition">🏥 ประกันชีวิต</button>
+        <button onclick="toggleForm('auto')" id="btnAuto" class="bg-gray-300 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-md transition">🚗 ประกันรถยนต์</button>
+      </div>
+
+      <form id="policyForm" onsubmit="return false;">
+        <input type="hidden" id="policyType" value="life">
+        <input type="hidden" id="editRowIndex" value="">
+
+        <!-- ข้อมูลส่วนตัว (แสดงเฉพาะเบอร์โทรที่ใช้ร่วมกัน) -->
+        <div class="mb-6 bg-blue-50 p-5 rounded-xl border border-blue-100 flex items-center justify-between">
+          <div class="flex-1">
+            <label class="font-semibold text-blue-900">เบอร์โทรศัพท์ติดต่อ *</label>
+            <input type="tel" id="phone" class="input-field" placeholder="กรอกเบอร์โทรศัพท์" required>
+          </div>
+          <button type="button" onclick="closeForm()" class="ml-4 mt-6 text-sm bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-bold">❌ ปิดหน้าต่าง</button>
+        </div>
+
+        <!-- ==================== ฟอร์มประกันชีวิต ==================== -->
+        <div id="formLife" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="md:col-span-2"><label class="font-semibold text-gray-700">ชื่อ-นามสกุล ผู้เอาประกัน *</label><input type="text" id="name" class="input-field"></div>
+          <div><label class="font-semibold text-gray-700">ชื่อเล่น</label><input type="text" id="nickname" class="input-field"></div>
+          <div><label class="font-semibold text-gray-700">เลขบัตรประชาชน</label><input type="text" id="idCard" class="input-field" maxlength="13"></div>
+          <div class="md:col-span-2"><label class="font-semibold text-gray-700">ที่อยู่</label><textarea id="address" class="input-field" rows="2"></textarea></div>
+          <div><label class="font-semibold text-gray-700">แบบประกัน</label>
+            <select id="lifePlan" class="input-field">
+              <option value="สะสมทรัพย์ 10/5">สะสมทรัพย์ 10/5</option>
+              <option value="ตลอดชีพ 99/20">ตลอดชีพ 99/20</option>
+              <option value="ประกันสุขภาพเหมาจ่าย">ประกันสุขภาพเหมาจ่าย</option>
+              <option value="ประกันควบการลงทุน (Unit Linked)">ประกันควบการลงทุน (Unit Linked)</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+          <div><label class="font-semibold text-gray-700">ทุนประกัน</label><input type="number" id="sumInsured" class="input-field" placeholder="ตัวเลขทุนประกัน"></div>
+          
+          <div><label class="font-semibold text-gray-700">เบี้ยประกันรวม</label><input type="number" id="lifeTotalPremium" class="input-field border-blue-400" placeholder="กรอกเบี้ยรวม" oninput="calculateLifeNetPremium(this.value)"></div>
+          <div><label class="font-semibold text-gray-700">เบี้ยสุทธิ <span class="text-xs text-gray-500">(ออโต้)</span></label><input type="text" id="lifeNetPremium" class="input-field bg-gray-100 text-gray-500 font-bold" readonly placeholder="0.00"></div>
+
+          <div><label class="font-semibold text-gray-700">วันเริ่มคุ้มครอง</label><input type="date" id="startDate" class="input-field"></div>
+          <div><label class="font-semibold text-gray-700">วันครบกำหนด</label><input type="date" id="endDate" class="input-field"></div>
+        </div>
+
+        <!-- ==================== ฟอร์มประกันรถยนต์ ==================== -->
+        <div id="formAuto" class="hidden grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div><label class="font-semibold text-gray-700">หมายเลขทะเบียนรถ</label><input type="text" id="licensePlate" class="input-field"></div>
+          <div><label class="font-semibold text-gray-700">ประเภทรถ</label>
+            <select id="carType" class="input-field">
+              <option value="รถเก๋ง">รถเก๋ง</option><option value="รถกระบะ">รถกระบะ</option>
+              <option value="รถตู้">รถตู้</option><option value="รถจักรยานยนต์">รถจักรยานยนต์</option><option value="รถอื่นๆ">รถอื่นๆ</option>
+            </select>
+          </div>
+          <div class="md:col-span-2"><label class="font-semibold text-gray-700">ชนิดรถ (เช่น รถไฟฟ้า BYD)</label><input type="text" id="carSubtype" class="input-field" placeholder="เว้นว่างได้"></div>
+          
+          <div><label class="font-semibold text-gray-700">เบี้ยรวม (รวมภาษี/อากร)</label><input type="number" id="totalPremium" class="input-field border-green-400" placeholder="กรอกตัวเลขเบี้ยรวม" oninput="calculateNetPremium(this.value)"></div>
+          <div><label class="font-semibold text-gray-700">เบี้ยสุทธิ <span class="text-xs text-gray-500">(ออโต้)</span></label><input type="text" id="netPremium" class="input-field bg-gray-100 text-gray-500 font-bold" readonly placeholder="0.00"></div>
+
+          <div><label class="font-semibold text-gray-700">ประเภทประกัน</label>
+            <select id="insType" class="input-field">
+              <option value="ป.1">ป.1</option><option value="ป.1+">ป.1+</option>
+              <option value="ป.2">ป.2</option><option value="ป.2+">ป.2+</option>
+              <option value="ป.3">ป.3</option><option value="ป.3+">ป.3+</option><option value="ประกันอื่นๆ">ประกันอื่นๆ</option>
+            </select>
+          </div>
+          <div><label class="font-semibold text-gray-700">วันจดทะเบียนรถ</label><input type="date" id="regDate" class="input-field"></div>
+          <div><label class="font-semibold text-red-600">วันครบกำหนดภาษี</label><input type="date" id="taxEndDate" class="input-field border-red-300"></div>
+          <div><label class="font-semibold text-red-600">วัน พ.ร.บ. หมดอายุ</label><input type="date" id="prbEndDate" class="input-field border-red-300"></div>
+          <div><label class="font-semibold text-red-600">วันประกันรถครบกำหนด</label><input type="date" id="insEndDate" class="input-field border-red-300"></div>
+          <div class="md:col-span-2"><label class="font-semibold text-gray-700">หมายเหตุ</label><input type="text" id="note" class="input-field" placeholder="รายละเอียดเพิ่มเติม"></div>
+        </div>
+
+        <button id="btnSubmit" onclick="submitData()" class="mt-10 w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg transition transform hover:scale-[1.02]">
+          💾 บันทึกเป็นข้อมูลใหม่
+        </button>
+      </form>
+    </div>
   </div>
 
   <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-50">
@@ -129,11 +147,31 @@
       }
     };
 
+    function changeSearchPlaceholder() {
+      const t = document.getElementById('searchType').value;
+      document.getElementById('searchInput').placeholder = (t === 'life') ? "พิมพ์ ชื่อ, เลขบัตร หรือ เบอร์โทร" : "พิมพ์ ทะเบียนรถ หรือ เบอร์โทร";
+    }
+
     function calculateNetPremium(val) {
       let total = parseFloat(val); document.getElementById('netPremium').value = (total > 0) ? (total / 1.07428).toFixed(2) : "";
     }
     function calculateLifeNetPremium(val) {
       let total = parseFloat(val); document.getElementById('lifeNetPremium').value = (total > 0) ? (total / 1.07428).toFixed(2) : "";
+    }
+
+    // 🟢 กดเพิ่มข้อมูลใหม่ (โชว์ฟอร์มเปล่าๆ)
+    function showNewForm() {
+      document.getElementById('actionSection').classList.add('hidden');
+      document.getElementById('formContainer').classList.remove('hidden');
+      clearFormValues();
+      toggleForm(document.getElementById('searchType').value); // ล้อตามหมวดหมู่ที่ค้างอยู่
+    }
+
+    // 🟢 กดปิดฟอร์ม
+    function closeForm() {
+      document.getElementById('formContainer').classList.add('hidden');
+      document.getElementById('actionSection').classList.remove('hidden');
+      clearFormValues();
     }
 
     function toggleForm(type) {
@@ -142,22 +180,11 @@
         document.getElementById('formLife').classList.remove('hidden'); document.getElementById('formAuto').classList.add('hidden');
         document.getElementById('btnLife').className = "bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-md transition";
         document.getElementById('btnAuto').className = "bg-gray-300 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-md transition";
-        document.getElementById('searchInput').placeholder = "🔍 ค้นหา ชื่อ, เลขบัตรปชช, หรือ เบอร์โทร";
       } else {
         document.getElementById('formAuto').classList.remove('hidden'); document.getElementById('formLife').classList.add('hidden');
         document.getElementById('btnAuto').className = "bg-orange-500 text-white px-8 py-3 rounded-xl font-bold shadow-md transition";
         document.getElementById('btnLife').className = "bg-gray-300 text-gray-700 px-8 py-3 rounded-xl font-bold shadow-md transition";
-        document.getElementById('searchInput').placeholder = "🔍 ค้นหา ทะเบียนรถ หรือ เบอร์โทร";
       }
-      clearForm();
-    }
-
-    // ฟังก์ชันแปลงวันที่กลับมาใส่ใน Input Date
-    function formatDateForInput(dateStr) {
-      if (!dateStr) return "";
-      let d = new Date(dateStr);
-      if (isNaN(d.getTime())) return "";
-      return d.toISOString().split('T')[0];
     }
 
     // 🟢 ระบบค้นหา
@@ -165,7 +192,7 @@
       const keyword = document.getElementById('searchInput').value.trim();
       if(!keyword) return Swal.fire('แจ้งเตือน', 'กรุณาพิมพ์คำค้นหา', 'warning');
 
-      const type = document.getElementById('policyType').value;
+      const type = document.getElementById('searchType').value;
       document.getElementById('loadingText').innerText = "กำลังค้นหาข้อมูล...";
       document.getElementById('loadingOverlay').classList.remove('hidden');
 
@@ -179,9 +206,8 @@
         if (res.success && res.results.length > 0) {
           currentSearchResults = res.results;
           if(res.results.length === 1) {
-             selectResult(0); // ถ้าเจออันเดียว โหลดใส่ฟอร์มเลย
+             selectResult(0); 
           } else {
-             // เจอหลายอัน ให้เลือก
              let html = '<div class="text-left">';
              res.results.forEach((r, idx) => {
                let txt = type === 'life' ? `คุณ ${r.name} (${r.phone})` : `ทะเบียน ${r.licensePlate} (${r.phone})`;
@@ -191,17 +217,28 @@
              Swal.fire({ title: 'พบข้อมูลหลายรายการ', html: html, showConfirmButton: false, showCancelButton: true, cancelButtonText: 'ยกเลิก' });
           }
         } else {
-          Swal.fire('ไม่พบข้อมูล', 'สามารถกรอกข้อมูลด้านล่างเพื่อเพิ่มเป็นรายการใหม่ได้เลยครับ', 'info');
-          clearForm();
+          // ถ้าไม่เจอ ให้แจ้งเตือน และโชว์ปุ่มเพิ่มข้อมูลใหม่
+          Swal.fire({
+            title: 'ไม่พบข้อมูล',
+            text: 'ระบบไม่พบข้อมูลที่คุณค้นหา คุณสามารถกดปุ่ม "เพิ่มข้อมูลกรมธรรม์ใหม่" ด้านล่างเพื่อสร้างรายการใหม่ได้เลยครับ',
+            icon: 'info',
+            confirmButtonText: 'รับทราบ'
+          });
+          closeForm(); // ซ่อนฟอร์มและโชว์ปุ่ม Action
         }
       });
     }
 
     // 🟢 นำข้อมูลที่ค้นหาเจอมาใส่ในฟอร์ม
     function selectResult(idx) {
-      const type = document.getElementById('policyType').value;
+      const type = document.getElementById('searchType').value;
       const r = currentSearchResults[idx];
       Swal.close();
+
+      // โชว์ฟอร์มและปรับหมวดหมู่ให้ตรง
+      document.getElementById('actionSection').classList.add('hidden');
+      document.getElementById('formContainer').classList.remove('hidden');
+      toggleForm(type);
 
       document.getElementById('editRowIndex').value = r.rowIndex;
       document.getElementById('btnSubmit').innerText = "✏️ อัปเดตข้อมูล (แก้ไข)";
@@ -218,8 +255,8 @@
         document.getElementById('sumInsured').value = r.sumInsured || "";
         document.getElementById('lifeTotalPremium').value = r.lifeTotalPremium || "";
         calculateLifeNetPremium(r.lifeTotalPremium);
-        document.getElementById('startDate').value = formatDateForInput(r.startDate);
-        document.getElementById('endDate').value = formatDateForInput(r.endDate);
+        document.getElementById('startDate').value = r.startDate || "";
+        document.getElementById('endDate').value = r.endDate || "";
       } else {
         document.getElementById('licensePlate').value = r.licensePlate || "";
         document.getElementById('carType').value = r.carType || "";
@@ -227,16 +264,16 @@
         document.getElementById('insType').value = r.insType || "";
         document.getElementById('totalPremium').value = r.totalPremium || "";
         calculateNetPremium(r.totalPremium);
-        document.getElementById('regDate').value = formatDateForInput(r.regDate);
-        document.getElementById('taxEndDate').value = formatDateForInput(r.taxEndDate);
-        document.getElementById('prbEndDate').value = formatDateForInput(r.prbEndDate);
-        document.getElementById('insEndDate').value = formatDateForInput(r.insEndDate);
+        document.getElementById('regDate').value = r.regDate || "";
+        document.getElementById('taxEndDate').value = r.taxEndDate || "";
+        document.getElementById('prbEndDate').value = r.prbEndDate || "";
+        document.getElementById('insEndDate').value = r.insEndDate || "";
         document.getElementById('note').value = r.note || "";
       }
     }
 
-    // 🟢 ล้างฟอร์มเพื่อสร้างใหม่
-    function clearForm() {
+    // 🟢 ล้างค่าเฉยๆ
+    function clearFormValues() {
       document.getElementById('policyForm').reset();
       document.getElementById('editRowIndex').value = "";
       document.getElementById('netPremium').value = "";
@@ -253,9 +290,8 @@
       const type = document.getElementById('policyType').value;
       const data = {
         action: "submitPolicy",
-        policyType: type,
-        phone: phone,
-        rowIndex: document.getElementById('editRowIndex').value, // 🟢 ส่ง rowIndex ไปด้วย
+        policyType: type, phone: phone,
+        rowIndex: document.getElementById('editRowIndex').value,
         userId: lineProfile.userId, displayName: lineProfile.displayName, pictureUrl: lineProfile.pictureUrl
       };
 
@@ -292,12 +328,10 @@
         document.getElementById('loadingOverlay').classList.add('hidden');
         if (res.success) {
           Swal.fire('สำเร็จ!', res.message, 'success').then(() => {
-            clearForm();
+            closeForm(); // กลับไปหน้าแรก
             window.scrollTo(0, 0);
           });
-        } else {
-          Swal.fire('ผิดพลาด', res.error, 'error');
-        }
+        } else { Swal.fire('ผิดพลาด', res.error, 'error'); }
       }).catch(err => {
         document.getElementById('loadingOverlay').classList.add('hidden');
         Swal.fire('ข้อผิดพลาดระบบ', 'การเชื่อมต่อขัดข้อง', 'error');
