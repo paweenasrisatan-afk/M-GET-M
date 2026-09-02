@@ -3,128 +3,252 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ใบเสนอราคา - POY 365</title>
+  <title>ระบบออกใบเสนอราคา - POY 365</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Libraries สำหรับทำรูปภาพและ PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    body { font-family: 'Sarabun', sans-serif; background-color: #e5e7eb; }
-    .quotation-container { width: 1000px; margin: 20px auto; background: white; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+    .export-container { width: 1000px; background: white; padding: 40px; }
     .table-header { background-color: #1e3a8a; color: white; }
-    .section-header { background-color: #e0e7ff; color: #1e3a8a; font-weight: 600; }
-    .border-cell { border: 1px solid #d1d5db; padding: 8px 12px; }
+    .border-cell { border: 1px solid #cbd5e1; padding: 10px 14px; }
+    .print-only { display: none; }
   </style>
 </head>
-<body>
-
-<div class="quotation-container" id="quotationContent">
-  <!-- Header Section -->
-  <div class="flex justify-between items-center border-b-4 border-blue-900 pb-4 mb-6">
-    <div>
-      <h1 class="text-4xl font-bold text-blue-900">POY 365</h1>
-      <p class="text-gray-600 mt-1">ที่ปรึกษาด้านประกันภัยและการเงิน</p>
+<body class="p-4 md:p-8">
+  
+  <!-- ส่วนแผงควบคุมสำหรับ Admin (ไม่แสดงในใบเสนอราคา) -->
+  <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8 border-t-4 border-blue-600">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">🛠️ แผงควบคุมออกใบเสนอราคา</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div>
+        <label class="font-semibold text-gray-700">หมวดหมู่ประกัน</label>
+        <select id="sheetSelect" class="w-full p-3 border rounded-lg mt-1" onchange="loadPackages()">
+          <option value="">-- เลือกหมวดหมู่ --</option>
+          <option value="Package_Auto1">รถยนต์ ป.1 / 1+</option>
+          <option value="Package_Auto2">รถยนต์ ป.2 / 2+</option>
+          <option value="Package_Auto3">รถยนต์ ป.3 / 3+</option>
+          <option value="Package_Health">ประกันสุขภาพ</option>
+          <option value="Package_PA">ประกันอุบัติเหตุ (PA)</option>
+          <option value="Package_Life">ประกันชีวิต</option>
+        </select>
+      </div>
+      <div>
+        <label class="font-semibold text-gray-700">ชื่อลูกค้า</label>
+        <input type="text" id="customerName" class="w-full p-3 border rounded-lg mt-1" placeholder="เช่น คุณสมชาย ใจดี">
+      </div>
+      <div>
+        <label class="font-semibold text-gray-700">ข้อมูลรถ / รายละเอียดเพิ่มเติม</label>
+        <input type="text" id="extraInfo" class="w-full p-3 border rounded-lg mt-1" placeholder="เช่น Honda Civic 2024 / อายุ 35 ปี">
+      </div>
     </div>
-    <div class="text-right">
-      <h2 class="text-2xl font-bold text-gray-800">ใบเสนอราคาประกันภัยรถยนต์</h2>
-      <p class="text-sm mt-1">วันที่: <span id="currentDate">03/09/2026</span></p>
-      <p class="text-sm text-blue-700 font-semibold mt-1">LINE ID: @poy365 | โทร: 061-9289816</p>
+
+    <!-- พื้นที่แสดงตัวเลือกแพ็กเกจ (Checkboxes) -->
+    <div id="packageSelectionArea" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
+      <h3 class="font-bold text-blue-800 mb-2">เลือกแพ็กเกจเปรียบเทียบ (สูงสุด 3 รายการ)</h3>
+      <div id="checkboxContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+      <button onclick="generatePreview()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow">
+        📄 สร้างตัวอย่างใบเสนอราคา
+      </button>
+    </div>
+
+    <!-- ปุ่ม Export (แสดงเมื่อสร้าง Preview แล้ว) -->
+    <div id="exportButtons" class="hidden flex gap-3 mt-4">
+      <button onclick="downloadImage()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
+        🖼️ บันทึกเป็นรูปภาพ (JPG)
+      </button>
+      <button onclick="downloadPDF()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
+        📑 บันทึกเป็น PDF
+      </button>
+      <button onclick="alert('ระบบส่ง LINE อัตโนมัติกำลังเชื่อมต่อในเฟสถัดไปครับ!')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
+        💬 ส่งเข้า LINE ลูกค้า
+      </button>
     </div>
   </div>
 
-  <!-- Customer Info -->
-  <div class="flex justify-between mb-6 text-sm">
-    <div>
-      <p><strong>ชื่อลูกค้า:</strong> คุณลูกค้า ทดสอบ</p>
-      <p><strong>ยี่ห้อ/รุ่นรถ:</strong> Honda Civic 2024</p>
-    </div>
-    <div class="text-right">
-      <p><strong>ทะเบียนรถ:</strong> กข 1234 จันทบุรี</p>
-      <p><strong>ลักษณะการใช้:</strong> ส่วนบุคคล</p>
+  <!-- ============================================== -->
+  <!-- ส่วนแสดงผลใบเสนอราคา (Canvas Area สำหรับแคปเจอร์) -->
+  <!-- ============================================== -->
+  <div class="overflow-x-auto pb-10">
+    <div id="quotationCanvas" class="export-container mx-auto hidden shadow-2xl">
+      <!-- Header -->
+      <div class="flex justify-between items-center border-b-4 border-blue-900 pb-4 mb-6">
+        <div>
+          <h1 class="text-5xl font-bold text-blue-900 tracking-wide">POY 365</h1>
+          <p class="text-gray-600 mt-2 font-medium">การลงทุนเพื่อสิทธิประโยชน์ที่คุ้มค่ากว่า</p>
+        </div>
+        <div class="text-right">
+          <h2 class="text-3xl font-bold text-gray-800" id="docTitle">ใบเสนอราคา</h2>
+          <p class="text-md mt-2">วันที่: <span id="docDate"></span></p>
+          <p class="text-md text-blue-700 font-bold mt-1">LINE ID: @poy365 | โทร: 061-9289816</p>
+        </div>
+      </div>
+
+      <!-- Customer Info -->
+      <div class="flex justify-between mb-6 text-lg">
+        <p><strong>ชื่อลูกค้า:</strong> <span id="docCustomer"></span></p>
+        <p><strong>รายละเอียด:</strong> <span id="docExtra"></span></p>
+      </div>
+
+      <!-- Dynamic Table Area -->
+      <div id="dynamicTableArea"></div>
+
+      <!-- Footer -->
+      <div class="mt-10 text-sm text-gray-500 border-t pt-4 text-center">
+        <p>เอกสารฉบับนี้จัดทำขึ้นเพื่อเปรียบเทียบข้อมูลเบื้องต้น บริษัทฯ ขอสงวนสิทธิ์ในการพิจารณารับประกันตามเงื่อนไข</p>
+        <p class="font-bold text-blue-900 mt-1">"มั่นใจทุกการดูแล เลือก POY 365"</p>
+      </div>
     </div>
   </div>
 
-  <!-- Comparison Table -->
-  <table class="w-full text-sm border-collapse">
-    <thead>
-      <tr class="table-header text-center">
-        <th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>
-        <th class="border-cell w-1/4">บริษัทที่ 1 (กรุงเทพประกันภัย)</th>
-        <th class="border-cell w-1/4">บริษัทที่ 2 (วิริยะประกันภัย)</th>
-        <th class="border-cell w-1/4">บริษัทที่ 3 (ธนชาตประกันภัย)</th>
-      </tr>
-      <tr class="text-center font-bold text-lg bg-blue-50">
-        <td class="border-cell text-left text-blue-900">เบี้ยประกันภัยสุทธิ (บาท/ปี)</td>
-        <td class="border-cell text-red-600">18,500</td>
-        <td class="border-cell text-red-600">19,200</td>
-        <td class="border-cell text-red-600">17,900</td>
-      </tr>
-      <tr class="text-center bg-gray-50">
-        <td class="border-cell text-left">ประเภทการซ่อม</td>
-        <td class="border-cell">ซ่อมห้าง</td>
-        <td class="border-cell">ซ่อมห้าง</td>
-        <td class="border-cell">ซ่อมอู่</td>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Section 1 -->
-      <tr class="section-header"><td colspan="4" class="border-cell">ความรับผิดชอบต่อบุคคลภายนอก</td></tr>
-      <tr>
-        <td class="border-cell">ความเสียหายต่อชีวิต/ร่างกาย (ต่อคน)</td>
-        <td class="border-cell text-center">1,000,000</td>
-        <td class="border-cell text-center">1,000,000</td>
-        <td class="border-cell text-center">500,000</td>
-      </tr>
-      <tr>
-        <td class="border-cell">ความเสียหายต่อทรัพย์สิน (ต่อครั้ง)</td>
-        <td class="border-cell text-center">2,500,000</td>
-        <td class="border-cell text-center">2,500,000</td>
-        <td class="border-cell text-center">1,000,000</td>
-      </tr>
+  <script>
+    // ⚠️ นำลิงก์ Web App (Exec) ของคุณมาใส่ตรงนี้
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
+    
+    let currentPackages = [];
+    let currentHeaders = [];
+
+    // ดึงข้อมูลจาก Sheets เมื่อเลือกหมวดหมู่
+    function loadPackages() {
+      const sheetName = document.getElementById('sheetSelect').value;
+      if (!sheetName) return;
+
+      Swal.fire({ title: 'กำลังโหลดแพ็กเกจ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "getPackages", sheetName: sheetName })
+      }).then(res => res.json()).then(res => {
+        Swal.close();
+        if (res.success) {
+          currentPackages = res.data;
+          currentHeaders = res.headers;
+          renderCheckboxes();
+        } else {
+          Swal.fire('ข้อผิดพลาด', res.error, 'error');
+        }
+      }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'));
+    }
+
+    // สร้าง Checkbox ให้แอดมินเลือก
+    function renderCheckboxes() {
+      const container = document.getElementById('checkboxContainer');
+      container.innerHTML = '';
       
-      <!-- Section 2 -->
-      <tr class="section-header"><td colspan="4" class="border-cell">ความคุ้มครองรถยนต์เอาประกัน</td></tr>
-      <tr>
-        <td class="border-cell">ทุนประกันภัย (รถชน, รถหาย, ไฟไหม้)</td>
-        <td class="border-cell text-center font-bold">800,000</td>
-        <td class="border-cell text-center font-bold">800,000</td>
-        <td class="border-cell text-center font-bold">750,000</td>
-      </tr>
-      <tr>
-        <td class="border-cell">ค่าเสียหายส่วนแรก (Deductible)</td>
-        <td class="border-cell text-center">ไม่มี</td>
-        <td class="border-cell text-center">ไม่มี</td>
-        <td class="border-cell text-center">ไม่มี</td>
-      </tr>
+      currentPackages.forEach((pkg, index) => {
+        // ใช้คอลัมน์แรก (ชื่อบริษัท) และคอลัมน์สอง (ชื่อแผน) เป็น Label
+        let label = `${pkg[currentHeaders[0]]} - ${pkg[currentHeaders[1]]}`;
+        let div = document.createElement('div');
+        div.className = "flex items-center p-2 border rounded bg-white";
+        div.innerHTML = `<input type="checkbox" id="pkg_${index}" value="${index}" class="pkg-checkbox w-5 h-5 mr-3 text-blue-600">
+                         <label for="pkg_${index}" class="text-sm font-medium text-gray-700 cursor-pointer">${label}</label>`;
+        container.appendChild(div);
+      });
+      
+      document.getElementById('packageSelectionArea').classList.remove('hidden');
+    }
 
-      <!-- Section 3 -->
-      <tr class="section-header"><td colspan="4" class="border-cell">ความคุ้มครองแนบท้าย (บุคคลในรถ)</td></tr>
-      <tr>
-        <td class="border-cell">อุบัติเหตุส่วนบุคคล (คนขับ 1 + ผู้โดยสาร 4)</td>
-        <td class="border-cell text-center">100,000</td>
-        <td class="border-cell text-center">100,000</td>
-        <td class="border-cell text-center">50,000</td>
-      </tr>
-      <tr>
-        <td class="border-cell">ค่ารักษาพยาบาล (ต่อคน)</td>
-        <td class="border-cell text-center">100,000</td>
-        <td class="border-cell text-center">100,000</td>
-        <td class="border-cell text-center">50,000</td>
-      </tr>
-      <tr>
-        <td class="border-cell">การประกันตัวผู้ขับขี่</td>
-        <td class="border-cell text-center">300,000</td>
-        <td class="border-cell text-center">200,000</td>
-        <td class="border-cell text-center">200,000</td>
-      </tr>
-    </tbody>
-  </table>
+    // สร้างตารางเปรียบเทียบ (Dynamic)
+    function generatePreview() {
+      const checkboxes = document.querySelectorAll('.pkg-checkbox:checked');
+      if (checkboxes.length === 0) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกอย่างน้อย 1 แพ็กเกจ', 'warning');
+      if (checkboxes.length > 3) return Swal.fire('แจ้งเตือน', 'เลือกเปรียบเทียบได้สูงสุด 3 แพ็กเกจครับ', 'warning');
 
-  <!-- Footer -->
-  <div class="mt-8 text-xs text-gray-500 border-t pt-4">
-    <p>* เอกสารฉบับนี้เป็นเพียงใบเสนอราคาเบื้องต้น บริษัทฯ ขอสงวนสิทธิ์ในการปรับปรุงเบี้ยประกันภัยตามเงื่อนไขของบริษัทประกัน</p>
-    <p>* อัตราเบี้ยประกันภัยนี้มีผลบังคับใช้ภายใน 30 วัน นับตั้งแต่วันที่ออกใบเสนอราคา</p>
-  </div>
-</div>
+      let selectedData = [];
+      checkboxes.forEach(cb => selectedData.push(currentPackages[cb.value]));
 
+      // เซ็ตข้อมูลลูกค้าลงบิล
+      let d = new Date();
+      document.getElementById('docDate').innerText = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+      document.getElementById('docCustomer').innerText = document.getElementById('customerName').value || "ไม่ระบุ";
+      document.getElementById('docExtra').innerText = document.getElementById('extraInfo').value || "-";
+      
+      let title = document.getElementById('sheetSelect').options[document.getElementById('sheetSelect').selectedIndex].text;
+      document.getElementById('docTitle').innerText = "ใบเสนอราคา" + title;
+
+      // 🛠️ สร้างโครงสร้างตาราง HTML อัตโนมัติจากหัวตารางในชีต
+      let html = `<table class="w-full text-base border-collapse">
+                    <thead>
+                      <tr class="table-header text-center">
+                        <th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>`;
+      
+      // ใส่หัวตาราง (ชื่อบริษัท และ ชื่อแผน)
+      selectedData.forEach(pkg => {
+        html += `<th class="border-cell w-1/4">
+                   <div class="font-bold text-xl">${pkg[currentHeaders[0]]}</div>
+                   <div class="text-sm text-blue-200 mt-1">${pkg[currentHeaders[1]]}</div>
+                 </th>`;
+      });
+      html += `</tr></thead><tbody>`;
+
+      // วนลูปสร้างแถวตามหัวข้อที่เหลือ (เริ่มจาก Index 2 เพราะ 0,1 เป็นชื่อบริษัทกับชื่อแผนไปแล้ว)
+      for (let i = 2; i < currentHeaders.length; i++) {
+        let headerName = currentHeaders[i];
+        if (!headerName) continue; // ข้ามถ้าหัวคอลัมน์ว่าง
+
+        let isPremium = headerName.includes('เบี้ย'); // ไฮไลท์แถวถ้ามีคำว่า 'เบี้ย'
+        let rowClass = isPremium ? "bg-blue-50 font-bold" : (i % 2 === 0 ? "bg-white" : "bg-gray-50");
+        let textClass = isPremium ? "text-red-600 text-2xl" : "text-gray-800";
+
+        html += `<tr class="${rowClass}">
+                   <td class="border-cell text-left font-semibold text-gray-700">${headerName}</td>`;
+        
+        selectedData.forEach(pkg => {
+          let val = pkg[headerName] || "-";
+          // จัดฟอร์แมตตัวเลขถ้าจำเป็น
+          html += `<td class="border-cell text-center ${textClass}">${val}</td>`;
+        });
+        html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+
+      document.getElementById('dynamicTableArea').innerHTML = html;
+      document.getElementById('quotationCanvas').classList.remove('hidden');
+      document.getElementById('exportButtons').classList.remove('hidden');
+      
+      // เลื่อนหน้าจอลงมาให้เห็นใบเสนอราคา
+      document.getElementById('quotationCanvas').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ฟังก์ชันแปลงเป็นรูปภาพ
+    async function downloadImage() {
+      Swal.fire({ title: 'กำลังสร้างรูปภาพ...', didOpen: () => Swal.showLoading() });
+      const element = document.getElementById('quotationCanvas');
+      
+      // ใช้ html2canvas วาดภาพ (scale 2 เพื่อความคมชัด)
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/jpeg', 0.9);
+      
+      // สร้างลิงก์ดาวน์โหลด
+      const link = document.createElement('a');
+      link.download = `Quotation_${new Date().getTime()}.jpg`;
+      link.href = imgData;
+      link.click();
+      Swal.close();
+    }
+
+    // ฟังก์ชันแปลงเป็น PDF
+    async function downloadPDF() {
+      Swal.fire({ title: 'กำลังสร้าง PDF...', didOpen: () => Swal.showLoading() });
+      const element = document.getElementById('quotationCanvas');
+      
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      
+      // คำนวณสัดส่วนกระดาษ A4
+      const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Quotation_${new Date().getTime()}.pdf`);
+      Swal.close();
+    }
+  </script>
 </body>
 </html>
 
