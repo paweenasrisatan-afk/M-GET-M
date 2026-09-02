@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบเสนอราคา - POY 365</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #e5e7eb; }
+    .quotation-container { width: 1000px; margin: 20px auto; background: white; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .table-header { background-color: #1e3a8a; color: white; }
+    .section-header { background-color: #e0e7ff; color: #1e3a8a; font-weight: 600; }
+    .border-cell { border: 1px solid #d1d5db; padding: 8px 12px; }
+  </style>
+</head>
+<body>
+
+<div class="quotation-container" id="quotationContent">
+  <!-- Header Section -->
+  <div class="flex justify-between items-center border-b-4 border-blue-900 pb-4 mb-6">
+    <div>
+      <h1 class="text-4xl font-bold text-blue-900">POY 365</h1>
+      <p class="text-gray-600 mt-1">ที่ปรึกษาด้านประกันภัยและการเงิน</p>
+    </div>
+    <div class="text-right">
+      <h2 class="text-2xl font-bold text-gray-800">ใบเสนอราคาประกันภัยรถยนต์</h2>
+      <p class="text-sm mt-1">วันที่: <span id="currentDate">03/09/2026</span></p>
+      <p class="text-sm text-blue-700 font-semibold mt-1">LINE ID: @poy365 | โทร: 061-9289816</p>
+    </div>
+  </div>
+
+  <!-- Customer Info -->
+  <div class="flex justify-between mb-6 text-sm">
+    <div>
+      <p><strong>ชื่อลูกค้า:</strong> คุณลูกค้า ทดสอบ</p>
+      <p><strong>ยี่ห้อ/รุ่นรถ:</strong> Honda Civic 2024</p>
+    </div>
+    <div class="text-right">
+      <p><strong>ทะเบียนรถ:</strong> กข 1234 จันทบุรี</p>
+      <p><strong>ลักษณะการใช้:</strong> ส่วนบุคคล</p>
+    </div>
+  </div>
+
+  <!-- Comparison Table -->
+  <table class="w-full text-sm border-collapse">
+    <thead>
+      <tr class="table-header text-center">
+        <th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>
+        <th class="border-cell w-1/4">บริษัทที่ 1 (กรุงเทพประกันภัย)</th>
+        <th class="border-cell w-1/4">บริษัทที่ 2 (วิริยะประกันภัย)</th>
+        <th class="border-cell w-1/4">บริษัทที่ 3 (ธนชาตประกันภัย)</th>
+      </tr>
+      <tr class="text-center font-bold text-lg bg-blue-50">
+        <td class="border-cell text-left text-blue-900">เบี้ยประกันภัยสุทธิ (บาท/ปี)</td>
+        <td class="border-cell text-red-600">18,500</td>
+        <td class="border-cell text-red-600">19,200</td>
+        <td class="border-cell text-red-600">17,900</td>
+      </tr>
+      <tr class="text-center bg-gray-50">
+        <td class="border-cell text-left">ประเภทการซ่อม</td>
+        <td class="border-cell">ซ่อมห้าง</td>
+        <td class="border-cell">ซ่อมห้าง</td>
+        <td class="border-cell">ซ่อมอู่</td>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Section 1 -->
+      <tr class="section-header"><td colspan="4" class="border-cell">ความรับผิดชอบต่อบุคคลภายนอก</td></tr>
+      <tr>
+        <td class="border-cell">ความเสียหายต่อชีวิต/ร่างกาย (ต่อคน)</td>
+        <td class="border-cell text-center">1,000,000</td>
+        <td class="border-cell text-center">1,000,000</td>
+        <td class="border-cell text-center">500,000</td>
+      </tr>
+      <tr>
+        <td class="border-cell">ความเสียหายต่อทรัพย์สิน (ต่อครั้ง)</td>
+        <td class="border-cell text-center">2,500,000</td>
+        <td class="border-cell text-center">2,500,000</td>
+        <td class="border-cell text-center">1,000,000</td>
+      </tr>
+      
+      <!-- Section 2 -->
+      <tr class="section-header"><td colspan="4" class="border-cell">ความคุ้มครองรถยนต์เอาประกัน</td></tr>
+      <tr>
+        <td class="border-cell">ทุนประกันภัย (รถชน, รถหาย, ไฟไหม้)</td>
+        <td class="border-cell text-center font-bold">800,000</td>
+        <td class="border-cell text-center font-bold">800,000</td>
+        <td class="border-cell text-center font-bold">750,000</td>
+      </tr>
+      <tr>
+        <td class="border-cell">ค่าเสียหายส่วนแรก (Deductible)</td>
+        <td class="border-cell text-center">ไม่มี</td>
+        <td class="border-cell text-center">ไม่มี</td>
+        <td class="border-cell text-center">ไม่มี</td>
+      </tr>
+
+      <!-- Section 3 -->
+      <tr class="section-header"><td colspan="4" class="border-cell">ความคุ้มครองแนบท้าย (บุคคลในรถ)</td></tr>
+      <tr>
+        <td class="border-cell">อุบัติเหตุส่วนบุคคล (คนขับ 1 + ผู้โดยสาร 4)</td>
+        <td class="border-cell text-center">100,000</td>
+        <td class="border-cell text-center">100,000</td>
+        <td class="border-cell text-center">50,000</td>
+      </tr>
+      <tr>
+        <td class="border-cell">ค่ารักษาพยาบาล (ต่อคน)</td>
+        <td class="border-cell text-center">100,000</td>
+        <td class="border-cell text-center">100,000</td>
+        <td class="border-cell text-center">50,000</td>
+      </tr>
+      <tr>
+        <td class="border-cell">การประกันตัวผู้ขับขี่</td>
+        <td class="border-cell text-center">300,000</td>
+        <td class="border-cell text-center">200,000</td>
+        <td class="border-cell text-center">200,000</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Footer -->
+  <div class="mt-8 text-xs text-gray-500 border-t pt-4">
+    <p>* เอกสารฉบับนี้เป็นเพียงใบเสนอราคาเบื้องต้น บริษัทฯ ขอสงวนสิทธิ์ในการปรับปรุงเบี้ยประกันภัยตามเงื่อนไขของบริษัทประกัน</p>
+    <p>* อัตราเบี้ยประกันภัยนี้มีผลบังคับใช้ภายใน 30 วัน นับตั้งแต่วันที่ออกใบเสนอราคา</p>
+  </div>
+</div>
+
+</body>
+</html>
+
