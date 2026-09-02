@@ -16,6 +16,10 @@
     .table-header { background-color: #1e3a8a; color: white; }
     .border-cell { border: 1px solid #cbd5e1; padding: 10px 14px; }
     .print-only { display: none; }
+    /* สไตล์สำหรับช่องที่แก้ไขได้ */
+    .editable-cell { transition: all 0.2s; cursor: text; border-bottom: 2px dashed #93c5fd; }
+    .editable-cell:hover { background-color: #fef08a !important; }
+    .editable-cell:focus { background-color: #fef08a !important; outline: none; border-bottom: 2px solid #eab308; }
   </style>
 </head>
 <body class="p-4 md:p-8">
@@ -29,9 +33,12 @@
         <label class="font-semibold text-gray-700">หมวดหมู่ประกัน</label>
         <select id="sheetSelect" class="w-full p-3 border rounded-lg mt-1" onchange="loadPackages()">
           <option value="">-- เลือกหมวดหมู่ --</option>
-          <option value="Package_Auto1">รถยนต์ ป.1 / 1+</option>
-          <option value="Package_Auto2">รถยนต์ ป.2 / 2+</option>
-          <option value="Package_Auto3">รถยนต์ ป.3 / 3+</option>
+          <option value="Package_Auto1">รถยนต์ ประเภท 1</option>
+          <option value="Package_Auto1+">รถยนต์ ประเภท 1+</option>
+          <option value="Package_Auto2">รถยนต์ ประเภท 2</option>
+          <option value="Package_Auto2+">รถยนต์ ประเภท 2+</option>
+          <option value="Package_Auto3">รถยนต์ ประเภท 3</option>
+          <option value="Package_Auto3+">รถยนต์ ประเภท 3+</option>
           <option value="Package_Health">ประกันสุขภาพ</option>
           <option value="Package_PA">ประกันอุบัติเหตุ (PA)</option>
           <option value="Package_Life">ประกันชีวิต</option>
@@ -50,13 +57,18 @@
     <!-- พื้นที่แสดงตัวเลือกแพ็กเกจ (Checkboxes) -->
     <div id="packageSelectionArea" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
       <h3 class="font-bold text-blue-800 mb-2">เลือกแพ็กเกจเปรียบเทียบ (สูงสุด 3 รายการ)</h3>
-      <div id="checkboxContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+      <div id="checkboxContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
       <button onclick="generatePreview()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow">
         📄 สร้างตัวอย่างใบเสนอราคา
       </button>
     </div>
 
-    <!-- ปุ่ม Export (แสดงเมื่อสร้าง Preview แล้ว) -->
+    <!-- 🟢 แจ้งเตือนแอดมินให้ทราบว่าสามารถพิมพ์แก้ไขตัวเลขได้ -->
+    <div id="editHint" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mt-4 mb-4 shadow">
+      <strong>💡 เคล็ดลับสำหรับแอดมิน:</strong> ในตารางใบเสนอราคาด้านล่าง ช่องที่มี <u>เส้นประ</u> (เบี้ยประกัน, ทุนประกัน, ค่าเสียหายส่วนแรก) คุณสามารถ <b>คลิกแล้วพิมพ์ตัวเลขแก้ไขได้โดยตรง</b> ก่อนกดบันทึกรูปภาพครับ!
+    </div>
+
+    <!-- ปุ่ม Export -->
     <div id="exportButtons" class="hidden flex gap-3 mt-4">
       <button onclick="downloadImage()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
         🖼️ บันทึกเป็นรูปภาพ (JPG)
@@ -112,10 +124,12 @@
     let currentPackages = [];
     let currentHeaders = [];
 
-    // ดึงข้อมูลจาก Sheets เมื่อเลือกหมวดหมู่
     function loadPackages() {
       const sheetName = document.getElementById('sheetSelect').value;
-      if (!sheetName) return;
+      if (!sheetName) {
+        document.getElementById('packageSelectionArea').classList.add('hidden');
+        return;
+      }
 
       Swal.fire({ title: 'กำลังโหลดแพ็กเกจ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
@@ -127,32 +141,39 @@
         if (res.success) {
           currentPackages = res.data;
           currentHeaders = res.headers;
-          renderCheckboxes();
+          renderCheckboxes(sheetName);
         } else {
           Swal.fire('ข้อผิดพลาด', res.error, 'error');
         }
       }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'));
     }
 
-    // สร้าง Checkbox ให้แอดมินเลือก
-    function renderCheckboxes() {
+    function renderCheckboxes(sheetName) {
       const container = document.getElementById('checkboxContainer');
       container.innerHTML = '';
       
       currentPackages.forEach((pkg, index) => {
-        // ใช้คอลัมน์แรก (ชื่อบริษัท) และคอลัมน์สอง (ชื่อแผน) เป็น Label
-        let label = `${pkg[currentHeaders[0]]} - ${pkg[currentHeaders[1]]}`;
+        let company = pkg[currentHeaders[0]] || "";
+        let plan = pkg[currentHeaders[1]] || "";
+        let labelHTML = `<span class="font-bold text-gray-800">${company}</span> - ${plan}`;
+
+        // โชว์ทุนและเบี้ยให้เห็นคร่าวๆ 
+        if (sheetName.includes('Auto') || sheetName.includes('Life') || sheetName.includes('Health')) {
+          let coverage = pkg[currentHeaders[2]] || "-";
+          let premium = pkg[currentHeaders[3]] || "-";
+          labelHTML += ` <br><span class="text-xs text-blue-600">(ทุน: ${coverage} | เบี้ย: ${premium})</span>`;
+        }
+
         let div = document.createElement('div');
-        div.className = "flex items-center p-2 border rounded bg-white";
-        div.innerHTML = `<input type="checkbox" id="pkg_${index}" value="${index}" class="pkg-checkbox w-5 h-5 mr-3 text-blue-600">
-                         <label for="pkg_${index}" class="text-sm font-medium text-gray-700 cursor-pointer">${label}</label>`;
+        div.className = "flex items-center p-3 border rounded-lg bg-white hover:bg-blue-50 transition";
+        div.innerHTML = `<input type="checkbox" id="pkg_${index}" value="${index}" class="pkg-checkbox w-6 h-6 mr-3 text-blue-600 cursor-pointer">
+                         <label for="pkg_${index}" class="text-sm font-medium text-gray-700 cursor-pointer flex-1 leading-tight">${labelHTML}</label>`;
         container.appendChild(div);
       });
       
       document.getElementById('packageSelectionArea').classList.remove('hidden');
     }
 
-    // สร้างตารางเปรียบเทียบ (Dynamic)
     function generatePreview() {
       const checkboxes = document.querySelectorAll('.pkg-checkbox:checked');
       if (checkboxes.length === 0) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกอย่างน้อย 1 แพ็กเกจ', 'warning');
@@ -161,7 +182,6 @@
       let selectedData = [];
       checkboxes.forEach(cb => selectedData.push(currentPackages[cb.value]));
 
-      // เซ็ตข้อมูลลูกค้าลงบิล
       let d = new Date();
       document.getElementById('docDate').innerText = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
       document.getElementById('docCustomer').innerText = document.getElementById('customerName').value || "ไม่ระบุ";
@@ -170,13 +190,11 @@
       let title = document.getElementById('sheetSelect').options[document.getElementById('sheetSelect').selectedIndex].text;
       document.getElementById('docTitle').innerText = "ใบเสนอราคา" + title;
 
-      // 🛠️ สร้างโครงสร้างตาราง HTML อัตโนมัติจากหัวตารางในชีต
       let html = `<table class="w-full text-base border-collapse">
                     <thead>
                       <tr class="table-header text-center">
                         <th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>`;
       
-      // ใส่หัวตาราง (ชื่อบริษัท และ ชื่อแผน)
       selectedData.forEach(pkg => {
         html += `<th class="border-cell w-1/4">
                    <div class="font-bold text-xl">${pkg[currentHeaders[0]]}</div>
@@ -185,12 +203,15 @@
       });
       html += `</tr></thead><tbody>`;
 
-      // วนลูปสร้างแถวตามหัวข้อที่เหลือ (เริ่มจาก Index 2 เพราะ 0,1 เป็นชื่อบริษัทกับชื่อแผนไปแล้ว)
+      // วนลูปสร้างแถวตามหัวข้อที่เหลือ
       for (let i = 2; i < currentHeaders.length; i++) {
         let headerName = currentHeaders[i];
-        if (!headerName) continue; // ข้ามถ้าหัวคอลัมน์ว่าง
+        if (!headerName) continue;
 
-        let isPremium = headerName.includes('เบี้ย'); // ไฮไลท์แถวถ้ามีคำว่า 'เบี้ย'
+        let isPremium = headerName.includes('เบี้ย');
+        // 🟢 ตรวจสอบคำสำคัญ ถ้าใช่ จะเปิดให้คลิกแก้ตัวเลขได้ (contenteditable="true")
+        let canEdit = isPremium || headerName.includes('ทุน') || headerName.includes('ค่าเสียหายส่วนแรก');
+
         let rowClass = isPremium ? "bg-blue-50 font-bold" : (i % 2 === 0 ? "bg-white" : "bg-gray-50");
         let textClass = isPremium ? "text-red-600 text-2xl" : "text-gray-800";
 
@@ -199,8 +220,13 @@
         
         selectedData.forEach(pkg => {
           let val = pkg[headerName] || "-";
-          // จัดฟอร์แมตตัวเลขถ้าจำเป็น
-          html += `<td class="border-cell text-center ${textClass}">${val}</td>`;
+          
+          if (canEdit) {
+            // ใส่คลาส editable-cell ให้มีเส้นประด้านล่างเพื่อสังเกตง่าย
+            html += `<td class="border-cell text-center ${textClass} editable-cell" contenteditable="true" title="คลิกเพื่อแก้ไขตัวเลข">${val}</td>`;
+          } else {
+            html += `<td class="border-cell text-center ${textClass}">${val}</td>`;
+          }
         });
         html += `</tr>`;
       }
@@ -209,21 +235,36 @@
       document.getElementById('dynamicTableArea').innerHTML = html;
       document.getElementById('quotationCanvas').classList.remove('hidden');
       document.getElementById('exportButtons').classList.remove('hidden');
+      document.getElementById('editHint').classList.remove('hidden'); // โชว์ทิปส์แจ้งเตือน
       
-      // เลื่อนหน้าจอลงมาให้เห็นใบเสนอราคา
       document.getElementById('quotationCanvas').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ฟังก์ชันแปลงเป็นรูปภาพ
+    // 🟢 ฟังก์ชันเอาเส้นประออกก่อนแคปจอรูปภาพ เพื่อให้ภาพที่ได้ดูเนียนตา
+    function removeEditableStyles() {
+      if (document.activeElement) document.activeElement.blur(); // เอาเคอร์เซอร์กะพริบออก
+      document.querySelectorAll('.editable-cell').forEach(cell => {
+        cell.style.borderBottom = 'none'; // ซ่อนเส้นประ
+      });
+    }
+
+    // 🟢 ฟังก์ชันเอาเส้นประกลับคืนมาหลังจากแคปภาพเสร็จ
+    function restoreEditableStyles() {
+      document.querySelectorAll('.editable-cell').forEach(cell => {
+        cell.style.borderBottom = ''; // คืนค่าเดิม
+      });
+    }
+
     async function downloadImage() {
       Swal.fire({ title: 'กำลังสร้างรูปภาพ...', didOpen: () => Swal.showLoading() });
-      const element = document.getElementById('quotationCanvas');
+      removeEditableStyles(); // ซ่อนเส้นประก่อนถ่ายรูป
       
-      // ใช้ html2canvas วาดภาพ (scale 2 เพื่อความคมชัด)
+      const element = document.getElementById('quotationCanvas');
       const canvas = await html2canvas(element, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL('image/jpeg', 0.9);
       
-      // สร้างลิงก์ดาวน์โหลด
+      restoreEditableStyles(); // คืนค่าเส้นประ
+      
       const link = document.createElement('a');
       link.download = `Quotation_${new Date().getTime()}.jpg`;
       link.href = imgData;
@@ -231,15 +272,16 @@
       Swal.close();
     }
 
-    // ฟังก์ชันแปลงเป็น PDF
     async function downloadPDF() {
       Swal.fire({ title: 'กำลังสร้าง PDF...', didOpen: () => Swal.showLoading() });
+      removeEditableStyles(); // ซ่อนเส้นประก่อนถ่ายรูป
+
       const element = document.getElementById('quotationCanvas');
-      
       const canvas = await html2canvas(element, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       
-      // คำนวณสัดส่วนกระดาษ A4
+      restoreEditableStyles(); // คืนค่าเส้นประ
+
       const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
