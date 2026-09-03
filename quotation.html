@@ -25,12 +25,12 @@
   <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8 border-t-4 border-blue-600">
     <h2 class="text-2xl font-bold text-gray-800 mb-4">🛠️ แผงควบคุมออกใบเสนอราคา</h2>
     
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <!-- เปลี่ยน Grid เป็น 4 ช่อง เพื่อใส่ช่อง User ID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
       <div>
         <label class="font-semibold text-gray-700">หมวดหมู่ประกัน</label>
         <select id="sheetSelect" class="w-full p-3 border rounded-lg mt-1 focus:ring-2 focus:ring-blue-500" onchange="loadPackages()">
           <option value="">-- เลือกหมวดหมู่ --</option>
-          <!-- 🟢 เพิ่มเมนูพิเศษสำหรับเปรียบเทียบข้ามประเภท -->
           <option value="Auto_All" class="font-bold text-blue-600 bg-blue-50">🚗 เปรียบเทียบรถยนต์ข้ามประเภท (1-3+)</option>
           <option value="Package_Auto1">รถยนต์ ประเภท 1</option>
           <option value="Package_Auto1+">รถยนต์ ประเภท 1+</option>
@@ -48,8 +48,12 @@
         <input type="text" id="customerName" class="w-full p-3 border rounded-lg mt-1" placeholder="เช่น คุณสมชาย ใจดี">
       </div>
       <div>
-        <label class="font-semibold text-gray-700">ข้อมูลรถ / รายละเอียดเพิ่มเติม</label>
-        <input type="text" id="extraInfo" class="w-full p-3 border rounded-lg mt-1" placeholder="เช่น Honda Civic 2024 / อายุ 35 ปี">
+        <label class="font-semibold text-gray-700">ข้อมูลรถ / รายละเอียด</label>
+        <input type="text" id="extraInfo" class="w-full p-3 border rounded-lg mt-1" placeholder="เช่น Honda Civic 2024">
+      </div>
+      <div>
+        <label class="font-semibold text-gray-700">LINE User ID (ส่งออโต้)</label>
+        <input type="text" id="targetUserId" class="w-full p-3 border rounded-lg mt-1 border-blue-400" placeholder="U123456... (ลูกค้าพิมพ์ UID ในแชท)">
       </div>
     </div>
 
@@ -67,20 +71,17 @@
 
     <div id="exportButtons" class="hidden flex gap-3 mt-4">
       <button onclick="downloadImage()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
-        🖼️ บันทึกเป็นรูปภาพ (JPG)
+        🖼️ โหลดรูป (JPG)
       </button>
       <button onclick="downloadPDF()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
-        📑 บันทึกเป็น PDF
+        📑 โหลดเป็น PDF
       </button>
-      <button onclick="alert('ระบบส่ง LINE อัตโนมัติกำลังเชื่อมต่อในเฟสถัดไปครับ!')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
-        💬 ส่งเข้า LINE ลูกค้า
+      <button onclick="sendToLine()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow flex-1">
+        💬 ยิงเข้า LINE ลูกค้า
       </button>
     </div>
   </div>
 
-  <!-- ============================================== -->
-  <!-- ส่วนแสดงผลใบเสนอราคา -->
-  <!-- ============================================== -->
   <div class="overflow-x-auto pb-10">
     <div id="quotationCanvas" class="export-container mx-auto hidden shadow-2xl">
       <div class="flex justify-between items-center border-b-4 border-blue-900 pb-4 mb-6">
@@ -94,14 +95,11 @@
           <p class="text-md text-blue-700 font-bold mt-1">LINE ID: @poy365 | โทร: 061-9289816</p>
         </div>
       </div>
-
       <div class="flex justify-between mb-6 text-lg">
         <p><strong>ชื่อลูกค้า:</strong> <span id="docCustomer"></span></p>
         <p><strong>รายละเอียด:</strong> <span id="docExtra"></span></p>
       </div>
-
       <div id="dynamicTableArea"></div>
-
       <div class="mt-10 text-sm text-gray-500 border-t pt-4 text-center">
         <p>เอกสารฉบับนี้จัดทำขึ้นเพื่อเปรียบเทียบข้อมูลเบื้องต้น บริษัทฯ ขอสงวนสิทธิ์ในการพิจารณารับประกันตามเงื่อนไข</p>
         <p class="font-bold text-blue-900 mt-1">"มั่นใจทุกการดูแล เลือก POY 365"</p>
@@ -116,95 +114,60 @@
     let currentPackages = [];
     let currentHeaders = [];
 
-    // 🟢 เปลี่ยนฟังก์ชันให้รองรับการดึงข้อมูลพร้อมกันหลายชีต
     async function loadPackages() {
       const sheetName = document.getElementById('sheetSelect').value;
       if (!sheetName) {
         document.getElementById('packageSelectionArea').classList.add('hidden');
         return;
       }
-
       Swal.fire({ title: 'กำลังโหลดแพ็กเกจ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-      // 🟢 เงื่อนไขพิเศษ: ดึงข้อมูลรถยนต์ทุกประเภทมารวมกัน
       if (sheetName === 'Auto_All') {
         const autoSheets = ["Package_Auto1", "Package_Auto1+", "Package_Auto2", "Package_Auto2+", "Package_Auto3", "Package_Auto3+"];
         let allPkgs = [];
         let mainHeaders = [];
-
-        // ยิงคำสั่งดึงข้อมูล 6 แท็บพร้อมกัน
-        let promises = autoSheets.map(s => 
-          fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "getPackages", sheetName: s }) })
-          .then(r => r.json())
-          .catch(e => ({ success: false })) // ป้องกัน error ถ้ายิงไม่ติดบางแท็บ
-        );
-
+        let promises = autoSheets.map(s => fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "getPackages", sheetName: s }) }).then(r => r.json()).catch(e => ({ success: false })));
         let results = await Promise.all(promises);
 
         results.forEach((res, idx) => {
           if (res.success && res.data && res.data.length > 0) {
-            if (mainHeaders.length === 0) mainHeaders = res.headers; // ยึดหัวตารางจากชีตแรกที่เจอ
-            
-            let typeName = autoSheets[idx].replace("Package_Auto", "ป."); // แปลงเป็นคำว่า ป.1, ป.2+
-            
-            res.data.forEach(p => {
-              // แทรกคำว่า (ป.X) ไว้หน้าชื่อแผน เพื่อให้แอดมินแยกออกตอนเลือก
-              p[mainHeaders[1]] = `(${typeName}) ${p[mainHeaders[1]]}`;
-            });
+            if (mainHeaders.length === 0) mainHeaders = res.headers;
+            let typeName = autoSheets[idx].replace("Package_Auto", "ป.");
+            res.data.forEach(p => { p[mainHeaders[1]] = `(${typeName}) ${p[mainHeaders[1]]}`; });
             allPkgs = allPkgs.concat(res.data);
           }
         });
 
-        if (allPkgs.length === 0) {
-          Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลแพ็กเกจรถยนต์ในฐานข้อมูล', 'error');
-          return;
-        }
-
-        currentPackages = allPkgs;
-        currentHeaders = mainHeaders;
-        Swal.close();
-        renderCheckboxes(sheetName);
-
+        if (allPkgs.length === 0) { Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลแพ็กเกจรถยนต์', 'error'); return; }
+        currentPackages = allPkgs; currentHeaders = mainHeaders;
+        Swal.close(); renderCheckboxes(sheetName);
       } else {
-        // 🟢 การดึงข้อมูลแบบปกติ (ทีละชีต)
-        fetch(GAS_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: "getPackages", sheetName: sheetName })
-        }).then(res => res.json()).then(res => {
+        fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "getPackages", sheetName: sheetName }) })
+        .then(res => res.json()).then(res => {
           Swal.close();
-          if (res.success) {
-            currentPackages = res.data;
-            currentHeaders = res.headers;
-            renderCheckboxes(sheetName);
-          } else {
-            Swal.fire('ข้อผิดพลาด', res.error, 'error');
-          }
-        }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'));
+          if (res.success) { currentPackages = res.data; currentHeaders = res.headers; renderCheckboxes(sheetName); }
+          else { Swal.fire('ข้อผิดพลาด', res.error, 'error'); }
+        }).catch(err => Swal.fire('ข้อผิดพลาด', 'เชื่อมต่อขัดข้อง', 'error'));
       }
     }
 
     function renderCheckboxes(sheetName) {
       const container = document.getElementById('checkboxContainer');
       container.innerHTML = '';
-      
       currentPackages.forEach((pkg, index) => {
         let company = pkg[currentHeaders[0]] || "";
         let plan = pkg[currentHeaders[1]] || "";
         let labelHTML = `<span class="font-bold text-gray-800">${company}</span> - ${plan}`;
-
         if (sheetName.includes('Auto') || sheetName.includes('Life') || sheetName.includes('Health')) {
-          let coverage = pkg[currentHeaders[2]] || "-";
-          let premium = pkg[currentHeaders[3]] || "-";
+          let coverage = pkg[currentHeaders[2]] || "-"; let premium = pkg[currentHeaders[3]] || "-";
           labelHTML += ` <br><span class="text-xs text-blue-600">(ทุน: ${coverage} | เบี้ย: ${premium})</span>`;
         }
-
         let div = document.createElement('div');
         div.className = "flex items-center p-3 border rounded-lg bg-white hover:bg-blue-50 transition shadow-sm";
         div.innerHTML = `<input type="checkbox" id="pkg_${index}" value="${index}" class="pkg-checkbox w-6 h-6 mr-3 text-blue-600 cursor-pointer">
                          <label for="pkg_${index}" class="text-sm font-medium text-gray-700 cursor-pointer flex-1 leading-tight">${labelHTML}</label>`;
         container.appendChild(div);
       });
-      
       document.getElementById('packageSelectionArea').classList.remove('hidden');
     }
 
@@ -215,114 +178,91 @@
 
       let selectedData = [];
       checkboxes.forEach(cb => selectedData.push(currentPackages[cb.value]));
-
       let d = new Date();
       document.getElementById('docDate').innerText = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
       document.getElementById('docCustomer').innerText = document.getElementById('customerName').value || "ไม่ระบุ";
       document.getElementById('docExtra').innerText = document.getElementById('extraInfo').value || "-";
       
       let titleText = document.getElementById('sheetSelect').options[document.getElementById('sheetSelect').selectedIndex].text;
-      
-      // ปรับชื่อใบเสนอราคาให้สวยงาม หากเลือกข้ามประเภท
-      if (titleText.includes('เปรียบเทียบรถยนต์ข้ามประเภท')) {
-        document.getElementById('docTitle').innerText = "ใบเสนอราคาประกันรถยนต์";
-      } else {
-        document.getElementById('docTitle').innerText = "ใบเสนอราคา" + titleText;
-      }
+      document.getElementById('docTitle').innerText = titleText.includes('เปรียบเทียบรถยนต์') ? "ใบเสนอราคาประกันรถยนต์" : "ใบเสนอราคา" + titleText;
 
-      let html = `<table class="w-full text-base border-collapse">
-                    <thead>
-                      <tr class="table-header text-center">
-                        <th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>`;
-      
-      selectedData.forEach(pkg => {
-        html += `<th class="border-cell w-1/4">
-                   <div class="font-bold text-xl">${pkg[currentHeaders[0]]}</div>
-                   <div class="text-sm text-blue-200 mt-1">${pkg[currentHeaders[1]]}</div>
-                 </th>`;
-      });
+      let html = `<table class="w-full text-base border-collapse"><thead><tr class="table-header text-center"><th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>`;
+      selectedData.forEach(pkg => { html += `<th class="border-cell w-1/4"><div class="font-bold text-xl">${pkg[currentHeaders[0]]}</div><div class="text-sm text-blue-200 mt-1">${pkg[currentHeaders[1]]}</div></th>`; });
       html += `</tr></thead><tbody>`;
 
       for (let i = 2; i < currentHeaders.length; i++) {
         let headerName = currentHeaders[i];
         if (!headerName) continue;
-
         let isPremium = headerName.includes('เบี้ย');
         let canEdit = isPremium || headerName.includes('ทุน') || headerName.includes('ค่าเสียหายส่วนแรก');
-
         let rowClass = isPremium ? "bg-blue-50 font-bold" : (i % 2 === 0 ? "bg-white" : "bg-gray-50");
         let textClass = isPremium ? "text-red-600 text-2xl" : "text-gray-800";
-
-        html += `<tr class="${rowClass}">
-                   <td class="border-cell text-left font-semibold text-gray-700">${headerName}</td>`;
-        
+        html += `<tr class="${rowClass}"><td class="border-cell text-left font-semibold text-gray-700">${headerName}</td>`;
         selectedData.forEach(pkg => {
           let val = pkg[headerName] || "-";
-          if (canEdit) {
-            html += `<td class="border-cell text-center ${textClass} editable-cell" contenteditable="true" title="คลิกเพื่อแก้ไขตัวเลข">${val}</td>`;
-          } else {
-            html += `<td class="border-cell text-center ${textClass}">${val}</td>`;
-          }
+          if (canEdit) html += `<td class="border-cell text-center ${textClass} editable-cell" contenteditable="true" title="คลิกเพื่อแก้ไข">${val}</td>`;
+          else html += `<td class="border-cell text-center ${textClass}">${val}</td>`;
         });
         html += `</tr>`;
       }
       html += `</tbody></table>`;
-
       document.getElementById('dynamicTableArea').innerHTML = html;
       document.getElementById('quotationCanvas').classList.remove('hidden');
       document.getElementById('exportButtons').classList.remove('hidden');
       document.getElementById('editHint').classList.remove('hidden'); 
-      
       document.getElementById('quotationCanvas').scrollIntoView({ behavior: 'smooth' });
     }
 
     function removeEditableStyles() {
       if (document.activeElement) document.activeElement.blur();
-      document.querySelectorAll('.editable-cell').forEach(cell => {
-        cell.style.borderBottom = 'none'; 
-      });
+      document.querySelectorAll('.editable-cell').forEach(cell => { cell.style.borderBottom = 'none'; });
     }
-
     function restoreEditableStyles() {
-      document.querySelectorAll('.editable-cell').forEach(cell => {
-        cell.style.borderBottom = ''; 
-      });
+      document.querySelectorAll('.editable-cell').forEach(cell => { cell.style.borderBottom = ''; });
     }
 
     async function downloadImage() {
       Swal.fire({ title: 'กำลังสร้างรูปภาพ...', didOpen: () => Swal.showLoading() });
       removeEditableStyles(); 
-      
-      const element = document.getElementById('quotationCanvas');
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/jpeg', 0.9);
-      
-      restoreEditableStyles(); 
-      
-      const link = document.createElement('a');
-      link.download = `Quotation_${new Date().getTime()}.jpg`;
-      link.href = imgData;
-      link.click();
-      Swal.close();
+      const canvas = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true });
+      const link = document.createElement('a'); link.download = `Quotation_${new Date().getTime()}.jpg`; link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
+      restoreEditableStyles(); Swal.close();
     }
 
     async function downloadPDF() {
       Swal.fire({ title: 'กำลังสร้าง PDF...', didOpen: () => Swal.showLoading() });
       removeEditableStyles(); 
+      const canvas = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true });
+      const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+      pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), (canvas.height * pdf.internal.pageSize.getWidth()) / canvas.width);
+      pdf.save(`Quotation_${new Date().getTime()}.pdf`);
+      restoreEditableStyles(); Swal.close();
+    }
 
-      const element = document.getElementById('quotationCanvas');
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    // 🟢 ฟังก์ชันส่งใบเสนอราคาเข้า LINE
+    async function sendToLine() {
+      const userId = document.getElementById('targetUserId').value.trim();
+      if (!userId) {
+        return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก LINE User ID ของลูกค้าก่อนส่งครับ (ให้ลูกค้าพิมพ์ UID ในแชทเพื่อเอารหัสมาใส่)', 'warning');
+      }
+
+      Swal.fire({ title: 'กำลังประมวลผลรูปภาพและส่งเข้า LINE...', text: 'อาจใช้เวลา 5-10 วินาที กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      removeEditableStyles(); 
       
+      const canvas = await html2canvas(document.getElementById('quotationCanvas'), { scale: 1.5, useCORS: true });
+      const imgB64 = canvas.toDataURL('image/jpeg', 0.8); // บีบอัดเล็กน้อยให้ส่งผ่านเน็ตได้ไวขึ้น
       restoreEditableStyles(); 
 
-      const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Quotation_${new Date().getTime()}.pdf`);
-      Swal.close();
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "sendQuotation", imageB64: imgB64, userId: userId })
+      }).then(res => res.json()).then(res => {
+        if (res.success) {
+          Swal.fire('สำเร็จ!', 'ส่งใบเสนอราคาให้ลูกค้าผ่าน LINE เรียบร้อยแล้ว', 'success');
+        } else {
+          Swal.fire('ส่งไม่สำเร็จ', res.error, 'error');
+        }
+      }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบส่ง LINE ได้', 'error'));
     }
   </script>
 </body>
