@@ -8,24 +8,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
     .export-container { width: 1000px; background: white; padding: 40px; }
     .table-header { background-color: #1e3a8a; color: white; }
     .border-cell { border: 1px solid #cbd5e1; padding: 10px 14px; }
-    .print-only { display: none; }
     .editable-cell { transition: all 0.2s; cursor: text; border-bottom: 2px dashed #93c5fd; }
     .editable-cell:hover { background-color: #fef08a !important; }
     .editable-cell:focus { background-color: #fef08a !important; outline: none; border-bottom: 2px solid #eab308; }
+    #authOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; }
   </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 relative">
+
+  <!-- ฉากกั้นตรวจสอบสิทธิ์การเข้าใช้งาน -->
+  <div id="authOverlay">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+    <h2 class="text-2xl font-bold text-gray-800" id="loadingText">กำลังโหลดการตั้งค่าระบบ...</h2>
+    <p class="text-gray-500 mt-2">POY 365 System</p>
+  </div>
   
   <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 mb-8 border-t-4 border-blue-600">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">🛠️ แผงควบคุมออกใบเสนอราคา</h2>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-gray-800">🛠️ แผงควบคุมออกใบเสนอราคา</h2>
+      
+      <button onclick="shareReferral()" class="bg-green-100 text-green-700 hover:bg-green-200 border border-green-400 font-bold py-2 px-4 rounded-lg shadow-sm flex items-center transition">
+        <span class="mr-2">🔗</span> แชร์ลิงก์แนะนำเพื่อน
+      </button>
+    </div>
     
-    <!-- เปลี่ยน Grid เป็น 4 ช่อง เพื่อใส่ช่อง User ID -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
       <div>
         <label class="font-semibold text-gray-700">หมวดหมู่ประกัน</label>
@@ -53,7 +66,7 @@
       </div>
       <div>
         <label class="font-semibold text-gray-700">LINE User ID (ส่งออโต้)</label>
-        <input type="text" id="targetUserId" class="w-full p-3 border rounded-lg mt-1 border-blue-400" placeholder="U123456... (ลูกค้าพิมพ์ UID ในแชท)">
+        <input type="text" id="targetUserId" class="w-full p-3 border rounded-lg mt-1 border-blue-400" placeholder="U123456... (ลูกค้าพิมพ์ UID)">
       </div>
     </div>
 
@@ -66,7 +79,7 @@
     </div>
 
     <div id="editHint" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mt-4 mb-4 shadow">
-      <strong>💡 เคล็ดลับสำหรับแอดมิน:</strong> ในตารางใบเสนอราคาด้านล่าง ช่องที่มี <u>เส้นประ</u> (เบี้ยประกัน, ทุนประกัน, ค่าเสียหายส่วนแรก) คุณสามารถ <b>คลิกแล้วพิมพ์ตัวเลขแก้ไขได้โดยตรง</b> ก่อนกดบันทึกรูปภาพครับ!
+      <strong>💡 เคล็ดลับสำหรับแอดมิน:</strong> ในตารางใบเสนอราคาด้านล่าง คุณสามารถ <b>คลิกแล้วพิมพ์ตัวเลขแก้ไขได้โดยตรง</b> ก่อนกดบันทึกรูปภาพครับ!
     </div>
 
     <div id="exportButtons" class="hidden flex gap-3 mt-4">
@@ -92,7 +105,7 @@
         <div class="text-right">
           <h2 class="text-3xl font-bold text-gray-800" id="docTitle">ใบเสนอราคา</h2>
           <p class="text-md mt-2">วันที่: <span id="docDate"></span></p>
-          <p class="text-md text-blue-700 font-bold mt-1">LINE ID: @poy365 | โทร: 061-9289816</p>
+          <p class="text-md text-blue-700 font-bold mt-1">LINE ID: @poy365</p>
         </div>
       </div>
       <div class="flex justify-between mb-6 text-lg">
@@ -100,35 +113,137 @@
         <p><strong>รายละเอียด:</strong> <span id="docExtra"></span></p>
       </div>
       <div id="dynamicTableArea"></div>
-      <div class="mt-10 text-sm text-gray-500 border-t pt-4 text-center">
-        <p>เอกสารฉบับนี้จัดทำขึ้นเพื่อเปรียบเทียบข้อมูลเบื้องต้น บริษัทฯ ขอสงวนสิทธิ์ในการพิจารณารับประกันตามเงื่อนไข</p>
-        <p class="font-bold text-blue-900 mt-1">"มั่นใจทุกการดูแล เลือก POY 365"</p>
+      
+      <!-- Footer ประทับตรารหัสตัวแทน -->
+      <div class="mt-10 text-sm border-t border-gray-300 pt-4 flex justify-between items-end">
+        <div class="text-gray-500">
+          <p>เอกสารฉบับนี้จัดทำขึ้นเพื่อเปรียบเทียบข้อมูลเบื้องต้น บริษัทฯ ขอสงวนสิทธิ์ในการพิจารณารับประกันตามเงื่อนไข</p>
+          <p class="font-bold text-blue-900 mt-1">"มั่นใจทุกการดูแล เลือก POY 365"</p>
+        </div>
+        <div class="text-right bg-blue-50 p-3 rounded-lg border border-blue-100">
+          <p class="text-gray-600 font-medium text-xs mb-1">เอกสารจัดทำโดยตัวแทนจำหน่าย:</p>
+          <p class="font-bold text-blue-900" id="agentFooterDetails">P00X คุณแอดมิน | โทร: 080-0000000</p>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ⚠️ นำลิงก์ Web App (Exec) ของคุณมาใส่ตรงนี้เหมือนเดิม
+    // ⚠️ นำลิงก์ Web App ของคุณมาใส่ตรงนี้ที่เดียวจบ!
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
     
     let currentPackages = [];
     let currentHeaders = [];
+    let currentAgent = null; 
+    let userProfile = {};
+    
+    // ตัวแปรเก็บค่าจากหน้า Settings
+    let LIFF_QUOTATION = "";
+    let LIFF_REGISTER_URL = "";
+
+    window.onload = async () => {
+      try {
+        // 1. ดึงข้อมูลตัวแปรจาก Google Sheets (แท็บ Settings) ก่อน
+        const configResponse = await fetch(GAS_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: "getConfig" })
+        }).then(res => res.json());
+
+        if (configResponse.success) {
+          LIFF_QUOTATION = configResponse.data.LIFF_QUOTATION;
+          LIFF_REGISTER_URL = configResponse.data.LIFF_REGISTER_URL;
+          
+          if (!LIFF_QUOTATION) {
+            Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ไม่พบ LIFF_QUOTATION ในแท็บ Settings', 'error');
+            return;
+          }
+        } else {
+          Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูล Settings ไม่สำเร็จ', 'error');
+          return;
+        }
+
+        // 2. พอได้รหัส LIFF แล้ว ค่อยเปิดระบบล็อกอิน
+        document.getElementById('loadingText').innerText = "กำลังตรวจสอบสิทธิ์ตัวแทน...";
+        await liff.init({ liffId: LIFF_QUOTATION });
+        
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        userProfile = await liff.getProfile();
+        authenticateAgent(userProfile.userId);
+
+      } catch (err) {
+        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้ กรุณารีเฟรช', 'error');
+      }
+    };
+
+    function authenticateAgent(userId) {
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "checkAgentStatus", userId: userId })
+      }).then(res => res.json()).then(res => {
+        if (!res.isRegistered) {
+          Swal.fire({ icon: 'warning', title: 'ยังไม่ลงทะเบียน', text: 'คุณต้องลงทะเบียนสมัครตัวแทนก่อนใช้งานครับ', confirmButtonText: 'ไปหน้าลงทะเบียน'
+          }).then(() => { if (LIFF_REGISTER_URL) window.location.href = LIFF_REGISTER_URL; });
+          return;
+        }
+        if (res.quotationStatus === "NonActive") {
+          Swal.fire({ icon: 'error', title: 'รออนุมัติสิทธิ์', text: 'สถานะของคุณยังเป็น NonActive โปรดรอแอดมินอนุมัติก่อนใช้งานครับ', showConfirmButton: false });
+          return;
+        }
+        currentAgent = res;
+        document.getElementById('authOverlay').style.display = 'none'; 
+      }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถตรวจสอบสิทธิ์ได้', 'error'));
+    }
+
+    async function shareReferral() {
+      if (!currentAgent) return;
+      if (!LIFF_REGISTER_URL) return Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ยังไม่ได้ใส่ LIFF_REGISTER_URL ใน Settings', 'warning');
+      
+      const refLink = `${LIFF_REGISTER_URL}?ref=${userProfile.userId}`;
+      
+      if (liff.isApiAvailable('shareTargetPicker')) {
+        try {
+          const res = await liff.shareTargetPicker([
+            {
+              type: "flex",
+              altText: "เชิญเข้าร่วมทีม POY 365",
+              contents: {
+                type: "bubble",
+                hero: { type: "image", url: "https://images.unsplash.com/photo-1556761175-4b46a572b786?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80", size: "full", aspectRatio: "20:13", aspectMode: "cover" },
+                body: { type: "box", layout: "vertical", contents: [
+                    { type: "text", text: "POY 365", weight: "bold", size: "xl", color: "#1e3a8a" },
+                    { type: "text", text: `ชวนคุณมาร่วมทีมกับ ${currentAgent.fullName}`, size: "sm", color: "#666666", wrap: true, margin: "md" },
+                    { type: "text", text: "สมัครตัวแทนฟรี! ออกใบเสนอราคาง่ายผ่านมือถือ", size: "xs", color: "#aaaaaa", wrap: true, margin: "md" }
+                  ]
+                },
+                footer: { type: "box", layout: "vertical", contents: [
+                    { type: "button", style: "primary", color: "#1e3a8a", action: { type: "uri", label: "สมัครตัวแทนคลิกที่นี่", uri: refLink } }
+                  ]
+                }
+              }
+            }
+          ]);
+          if (res) Swal.fire('สำเร็จ', 'ส่งลิงก์แนะนำให้เพื่อนเรียบร้อยแล้ว', 'success');
+        } catch (e) {
+          console.log("Share canceled", e);
+        }
+      } else {
+        navigator.clipboard.writeText(refLink);
+        Swal.fire('คัดลอกลิงก์แล้ว', 'นำลิงก์ไปวางส่งให้เพื่อนได้เลยครับ:\n' + refLink, 'info');
+      }
+    }
 
     async function loadPackages() {
       const sheetName = document.getElementById('sheetSelect').value;
-      if (!sheetName) {
-        document.getElementById('packageSelectionArea').classList.add('hidden');
-        return;
-      }
+      if (!sheetName) { document.getElementById('packageSelectionArea').classList.add('hidden'); return; }
       Swal.fire({ title: 'กำลังโหลดแพ็กเกจ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
       if (sheetName === 'Auto_All') {
         const autoSheets = ["Package_Auto1", "Package_Auto1+", "Package_Auto2", "Package_Auto2+", "Package_Auto3", "Package_Auto3+"];
-        let allPkgs = [];
-        let mainHeaders = [];
+        let allPkgs = []; let mainHeaders = [];
         let promises = autoSheets.map(s => fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "getPackages", sheetName: s }) }).then(r => r.json()).catch(e => ({ success: false })));
         let results = await Promise.all(promises);
-
         results.forEach((res, idx) => {
           if (res.success && res.data && res.data.length > 0) {
             if (mainHeaders.length === 0) mainHeaders = res.headers;
@@ -137,35 +252,25 @@
             allPkgs = allPkgs.concat(res.data);
           }
         });
-
-        if (allPkgs.length === 0) { Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลแพ็กเกจรถยนต์', 'error'); return; }
-        currentPackages = allPkgs; currentHeaders = mainHeaders;
-        Swal.close(); renderCheckboxes(sheetName);
+        if (allPkgs.length === 0) { Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูล', 'error'); return; }
+        currentPackages = allPkgs; currentHeaders = mainHeaders; Swal.close(); renderCheckboxes(sheetName);
       } else {
         fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "getPackages", sheetName: sheetName }) })
         .then(res => res.json()).then(res => {
-          Swal.close();
-          if (res.success) { currentPackages = res.data; currentHeaders = res.headers; renderCheckboxes(sheetName); }
-          else { Swal.fire('ข้อผิดพลาด', res.error, 'error'); }
-        }).catch(err => Swal.fire('ข้อผิดพลาด', 'เชื่อมต่อขัดข้อง', 'error'));
+          Swal.close(); if (res.success) { currentPackages = res.data; currentHeaders = res.headers; renderCheckboxes(sheetName); } else { Swal.fire('ผิดพลาด', res.error, 'error'); }
+        }).catch(err => Swal.fire('ผิดพลาด', 'เชื่อมต่อขัดข้อง', 'error'));
       }
     }
 
     function renderCheckboxes(sheetName) {
-      const container = document.getElementById('checkboxContainer');
-      container.innerHTML = '';
+      const container = document.getElementById('checkboxContainer'); container.innerHTML = '';
       currentPackages.forEach((pkg, index) => {
-        let company = pkg[currentHeaders[0]] || "";
-        let plan = pkg[currentHeaders[1]] || "";
-        let labelHTML = `<span class="font-bold text-gray-800">${company}</span> - ${plan}`;
+        let labelHTML = `<span class="font-bold text-gray-800">${pkg[currentHeaders[0]]||""}</span> - ${pkg[currentHeaders[1]]||""}`;
         if (sheetName.includes('Auto') || sheetName.includes('Life') || sheetName.includes('Health')) {
-          let coverage = pkg[currentHeaders[2]] || "-"; let premium = pkg[currentHeaders[3]] || "-";
-          labelHTML += ` <br><span class="text-xs text-blue-600">(ทุน: ${coverage} | เบี้ย: ${premium})</span>`;
+          labelHTML += ` <br><span class="text-xs text-blue-600">(ทุน: ${pkg[currentHeaders[2]]||"-"} | เบี้ย: ${pkg[currentHeaders[3]]||"-"})</span>`;
         }
-        let div = document.createElement('div');
-        div.className = "flex items-center p-3 border rounded-lg bg-white hover:bg-blue-50 transition shadow-sm";
-        div.innerHTML = `<input type="checkbox" id="pkg_${index}" value="${index}" class="pkg-checkbox w-6 h-6 mr-3 text-blue-600 cursor-pointer">
-                         <label for="pkg_${index}" class="text-sm font-medium text-gray-700 cursor-pointer flex-1 leading-tight">${labelHTML}</label>`;
+        let div = document.createElement('div'); div.className = "flex items-center p-3 border rounded-lg bg-white hover:bg-blue-50 transition shadow-sm";
+        div.innerHTML = `<input type="checkbox" id="pkg_${index}" value="${index}" class="pkg-checkbox w-6 h-6 mr-3 text-blue-600"><label for="pkg_${index}" class="text-sm font-medium text-gray-700 cursor-pointer flex-1 leading-tight">${labelHTML}</label>`;
         container.appendChild(div);
       });
       document.getElementById('packageSelectionArea').classList.remove('hidden');
@@ -174,32 +279,30 @@
     function generatePreview() {
       const checkboxes = document.querySelectorAll('.pkg-checkbox:checked');
       if (checkboxes.length === 0) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกอย่างน้อย 1 แพ็กเกจ', 'warning');
-      if (checkboxes.length > 3) return Swal.fire('แจ้งเตือน', 'เลือกเปรียบเทียบได้สูงสุด 3 แพ็กเกจครับ', 'warning');
+      if (checkboxes.length > 3) return Swal.fire('แจ้งเตือน', 'เลือกได้สูงสุด 3 แพ็กเกจ', 'warning');
 
-      let selectedData = [];
-      checkboxes.forEach(cb => selectedData.push(currentPackages[cb.value]));
-      let d = new Date();
-      document.getElementById('docDate').innerText = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+      let selectedData = []; checkboxes.forEach(cb => selectedData.push(currentPackages[cb.value]));
+      let d = new Date(); document.getElementById('docDate').innerText = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
       document.getElementById('docCustomer').innerText = document.getElementById('customerName').value || "ไม่ระบุ";
       document.getElementById('docExtra').innerText = document.getElementById('extraInfo').value || "-";
-      
       let titleText = document.getElementById('sheetSelect').options[document.getElementById('sheetSelect').selectedIndex].text;
-      document.getElementById('docTitle').innerText = titleText.includes('เปรียบเทียบรถยนต์') ? "ใบเสนอราคาประกันรถยนต์" : "ใบเสนอราคา" + titleText;
+      document.getElementById('docTitle').innerText = titleText.includes('เปรียบเทียบ') ? "ใบเสนอราคาประกันรถยนต์" : "ใบเสนอราคา" + titleText;
+
+      if (currentAgent) {
+        document.getElementById('agentFooterDetails').innerText = `${currentAgent.agentCode} ${currentAgent.fullName} | โทร: ${currentAgent.phone}`;
+      }
 
       let html = `<table class="w-full text-base border-collapse"><thead><tr class="table-header text-center"><th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>`;
       selectedData.forEach(pkg => { html += `<th class="border-cell w-1/4"><div class="font-bold text-xl">${pkg[currentHeaders[0]]}</div><div class="text-sm text-blue-200 mt-1">${pkg[currentHeaders[1]]}</div></th>`; });
       html += `</tr></thead><tbody>`;
 
       for (let i = 2; i < currentHeaders.length; i++) {
-        let headerName = currentHeaders[i];
-        if (!headerName) continue;
-        let isPremium = headerName.includes('เบี้ย');
-        let canEdit = isPremium || headerName.includes('ทุน') || headerName.includes('ค่าเสียหายส่วนแรก');
-        let rowClass = isPremium ? "bg-blue-50 font-bold" : (i % 2 === 0 ? "bg-white" : "bg-gray-50");
-        let textClass = isPremium ? "text-red-600 text-2xl" : "text-gray-800";
-        html += `<tr class="${rowClass}"><td class="border-cell text-left font-semibold text-gray-700">${headerName}</td>`;
+        if (!currentHeaders[i]) continue;
+        let isPremium = currentHeaders[i].includes('เบี้ย'); let canEdit = isPremium || currentHeaders[i].includes('ทุน') || currentHeaders[i].includes('ค่าเสียหายส่วนแรก');
+        let rowClass = isPremium ? "bg-blue-50 font-bold" : (i % 2 === 0 ? "bg-white" : "bg-gray-50"); let textClass = isPremium ? "text-red-600 text-2xl" : "text-gray-800";
+        html += `<tr class="${rowClass}"><td class="border-cell text-left font-semibold text-gray-700">${currentHeaders[i]}</td>`;
         selectedData.forEach(pkg => {
-          let val = pkg[headerName] || "-";
+          let val = pkg[currentHeaders[i]] || "-";
           if (canEdit) html += `<td class="border-cell text-center ${textClass} editable-cell" contenteditable="true" title="คลิกเพื่อแก้ไข">${val}</td>`;
           else html += `<td class="border-cell text-center ${textClass}">${val}</td>`;
         });
@@ -207,62 +310,19 @@
       }
       html += `</tbody></table>`;
       document.getElementById('dynamicTableArea').innerHTML = html;
-      document.getElementById('quotationCanvas').classList.remove('hidden');
-      document.getElementById('exportButtons').classList.remove('hidden');
-      document.getElementById('editHint').classList.remove('hidden'); 
-      document.getElementById('quotationCanvas').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('quotationCanvas').classList.remove('hidden'); document.getElementById('exportButtons').classList.remove('hidden');
+      document.getElementById('editHint').classList.remove('hidden'); document.getElementById('quotationCanvas').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function removeEditableStyles() {
-      if (document.activeElement) document.activeElement.blur();
-      document.querySelectorAll('.editable-cell').forEach(cell => { cell.style.borderBottom = 'none'; });
-    }
-    function restoreEditableStyles() {
-      document.querySelectorAll('.editable-cell').forEach(cell => { cell.style.borderBottom = ''; });
-    }
-
-    async function downloadImage() {
-      Swal.fire({ title: 'กำลังสร้างรูปภาพ...', didOpen: () => Swal.showLoading() });
-      removeEditableStyles(); 
-      const canvas = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true });
-      const link = document.createElement('a'); link.download = `Quotation_${new Date().getTime()}.jpg`; link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
-      restoreEditableStyles(); Swal.close();
-    }
-
-    async function downloadPDF() {
-      Swal.fire({ title: 'กำลังสร้าง PDF...', didOpen: () => Swal.showLoading() });
-      removeEditableStyles(); 
-      const canvas = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true });
-      const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-      pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), (canvas.height * pdf.internal.pageSize.getWidth()) / canvas.width);
-      pdf.save(`Quotation_${new Date().getTime()}.pdf`);
-      restoreEditableStyles(); Swal.close();
-    }
-
-    // 🟢 ฟังก์ชันส่งใบเสนอราคาเข้า LINE
+    function removeEditableStyles() { if (document.activeElement) document.activeElement.blur(); document.querySelectorAll('.editable-cell').forEach(c => c.style.borderBottom = 'none'); }
+    function restoreEditableStyles() { document.querySelectorAll('.editable-cell').forEach(c => c.style.borderBottom = ''); }
+    async function downloadImage() { Swal.fire({ title: 'กำลังสร้างรูป...', didOpen: () => Swal.showLoading() }); removeEditableStyles(); const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true }); const lnk = document.createElement('a'); lnk.download = `Quotation_${Date.now()}.jpg`; lnk.href = cvs.toDataURL('image/jpeg', 0.9); lnk.click(); restoreEditableStyles(); Swal.close(); }
+    async function downloadPDF() { Swal.fire({ title: 'กำลังสร้าง PDF...', didOpen: () => Swal.showLoading() }); removeEditableStyles(); const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true }); const pdf = new jspdf.jsPDF('p', 'mm', 'a4'); pdf.addImage(cvs.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), (cvs.height * pdf.internal.pageSize.getWidth()) / cvs.width); pdf.save(`Quotation_${Date.now()}.pdf`); restoreEditableStyles(); Swal.close(); }
     async function sendToLine() {
-      const userId = document.getElementById('targetUserId').value.trim();
-      if (!userId) {
-        return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก LINE User ID ของลูกค้าก่อนส่งครับ (ให้ลูกค้าพิมพ์ UID ในแชทเพื่อเอารหัสมาใส่)', 'warning');
-      }
-
-      Swal.fire({ title: 'กำลังประมวลผลรูปภาพและส่งเข้า LINE...', text: 'อาจใช้เวลา 5-10 วินาที กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      removeEditableStyles(); 
-      
-      const canvas = await html2canvas(document.getElementById('quotationCanvas'), { scale: 1.5, useCORS: true });
-      const imgB64 = canvas.toDataURL('image/jpeg', 0.8); // บีบอัดเล็กน้อยให้ส่งผ่านเน็ตได้ไวขึ้น
-      restoreEditableStyles(); 
-
-      fetch(GAS_API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "sendQuotation", imageB64: imgB64, userId: userId })
-      }).then(res => res.json()).then(res => {
-        if (res.success) {
-          Swal.fire('สำเร็จ!', 'ส่งใบเสนอราคาให้ลูกค้าผ่าน LINE เรียบร้อยแล้ว', 'success');
-        } else {
-          Swal.fire('ส่งไม่สำเร็จ', res.error, 'error');
-        }
-      }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบส่ง LINE ได้', 'error'));
+      const uid = document.getElementById('targetUserId').value.trim(); if (!uid) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก LINE User ID', 'warning');
+      Swal.fire({ title: 'กำลังส่งเข้า LINE...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); removeEditableStyles();
+      const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 1.5, useCORS: true }); const imgB64 = cvs.toDataURL('image/jpeg', 0.8); restoreEditableStyles();
+      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "sendQuotation", imageB64: imgB64, userId: uid }) }).then(r => r.json()).then(r => { if (r.success) Swal.fire('สำเร็จ!', 'ส่งใบเสนอราคาเรียบร้อย', 'success'); else Swal.fire('ผิดพลาด', r.error, 'error'); }).catch(e => Swal.fire('ผิดพลาด', 'เชื่อมต่อล้มเหลว', 'error'));
     }
   </script>
 </body>
