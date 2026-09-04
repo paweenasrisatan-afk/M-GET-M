@@ -12,9 +12,20 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
-    .export-container { width: 1000px; background: white; padding: 40px; }
+    
+    /* 🟢 อัปเกรด Container ให้เป็นสัดส่วน A4 (1000x1414) เสมอ */
+    .export-container { 
+      width: 1000px; 
+      min-height: 1414px; 
+      background: white; 
+      padding: 50px; 
+      display: flex; 
+      flex-direction: column; 
+    }
+    .export-body { flex-grow: 1; } /* ผลัก Footer ไปอยู่ล่างสุด */
+    
     .table-header { background-color: #1e3a8a; color: white; }
-    .border-cell { border: 1px solid #cbd5e1; padding: 10px 14px; }
+    .border-cell { border: 1px solid #cbd5e1; padding: 12px 16px; }
     .editable-cell { transition: all 0.2s; cursor: text; border-bottom: 2px dashed #93c5fd; }
     .editable-cell:hover { background-color: #fef08a !important; }
     .editable-cell:focus { background-color: #fef08a !important; outline: none; border-bottom: 2px solid #eab308; }
@@ -34,6 +45,7 @@
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold text-gray-800">🛠️ แผงควบคุมออกใบเสนอราคา</h2>
       
+      <!-- 🟢 ปุ่มแชร์แนะนำเพื่อน -->
       <button onclick="shareReferral()" class="bg-green-100 text-green-700 hover:bg-green-200 border border-green-400 font-bold py-2 px-4 rounded-lg shadow-sm flex items-center transition">
         <span class="mr-2">🔗</span> แชร์ลิงก์แนะนำเพื่อน
       </button>
@@ -96,143 +108,143 @@
   </div>
 
   <div class="overflow-x-auto pb-10">
+    <!-- 🟢 โครงสร้าง Canvas แบบ A4 -->
     <div id="quotationCanvas" class="export-container mx-auto hidden shadow-2xl">
-      <div class="flex justify-between items-center border-b-4 border-blue-900 pb-4 mb-6">
-        <div>
-          <h1 class="text-5xl font-bold text-blue-900 tracking-wide">POY 365</h1>
-          <p class="text-gray-600 mt-2 font-medium">การลงทุนเพื่อสิทธิประโยชน์ที่คุ้มค่ากว่า</p>
-        </div>
-        <div class="text-right">
-          <h2 class="text-3xl font-bold text-gray-800" id="docTitle">ใบเสนอราคา</h2>
-          <p class="text-md mt-2">วันที่: <span id="docDate"></span></p>
-          <p class="text-md text-blue-700 font-bold mt-1">LINE ID: @poy365</p>
-        </div>
-      </div>
-      <div class="flex justify-between mb-6 text-lg">
-        <p><strong>ชื่อลูกค้า:</strong> <span id="docCustomer"></span></p>
-        <p><strong>รายละเอียด:</strong> <span id="docExtra"></span></p>
-      </div>
-      <div id="dynamicTableArea"></div>
       
-      <!-- Footer ประทับตรารหัสตัวแทน -->
-      <div class="mt-10 text-sm border-t border-gray-300 pt-4 flex justify-between items-end">
+      <div class="export-body">
+        <div class="flex justify-between items-center border-b-4 border-blue-900 pb-4 mb-6">
+          <div>
+            <h1 class="text-5xl font-bold text-blue-900 tracking-wide">POY 365</h1>
+            <p class="text-gray-600 mt-2 font-medium">การลงทุนเพื่อสิทธิประโยชน์ที่คุ้มค่ากว่า</p>
+          </div>
+          <div class="text-right">
+            <h2 class="text-3xl font-bold text-gray-800" id="docTitle">ใบเสนอราคา</h2>
+            <p class="text-md mt-2">วันที่: <span id="docDate"></span></p>
+            <p class="text-md text-blue-700 font-bold mt-1">LINE ID: @poy365</p>
+          </div>
+        </div>
+        
+        <div class="flex justify-between mb-6 text-lg">
+          <p><strong>ชื่อลูกค้า:</strong> <span id="docCustomer"></span></p>
+          <p><strong>รายละเอียด:</strong> <span id="docExtra"></span></p>
+        </div>
+        
+        <div id="dynamicTableArea"></div>
+      </div>
+      
+      <!-- Footer ประทับตรารหัสตัวแทน (จะถูกดันไปอยู่ล่างสุดของ A4 เสมอ) -->
+      <div class="mt-8 text-sm border-t-2 border-gray-300 pt-6 flex justify-between items-end">
         <div class="text-gray-500">
           <p>เอกสารฉบับนี้จัดทำขึ้นเพื่อเปรียบเทียบข้อมูลเบื้องต้น บริษัทฯ ขอสงวนสิทธิ์ในการพิจารณารับประกันตามเงื่อนไข</p>
-          <p class="font-bold text-blue-900 mt-1">"มั่นใจทุกการดูแล เลือก POY 365"</p>
+          <p class="font-bold text-blue-900 mt-1 text-base">"มั่นใจทุกการดูแล เลือก POY 365"</p>
         </div>
-        <div class="text-right bg-blue-50 p-3 rounded-lg border border-blue-100">
-          <p class="text-gray-600 font-medium text-xs mb-1">เอกสารจัดทำโดยตัวแทนจำหน่าย:</p>
-          <p class="font-bold text-blue-900" id="agentFooterDetails">P00X คุณแอดมิน | โทร: 080-0000000</p>
+        <div class="text-right bg-blue-50 p-4 rounded-lg border border-blue-100 min-w-[250px]">
+          <p class="text-gray-600 font-medium text-sm mb-1">เอกสารจัดทำโดยตัวแทนจำหน่าย:</p>
+          <p class="font-bold text-blue-900 text-lg" id="agentFooterDetails">P00X คุณแอดมิน</p>
         </div>
       </div>
+
     </div>
   </div>
 
   <script>
-    // ⚠️ นำลิงก์ Web App ของคุณมาใส่ตรงนี้ที่เดียวจบ!
+    // ⚠️ ลิงก์ Web App
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
     
-    let currentPackages = [];
-    let currentHeaders = [];
-    let currentAgent = null; 
-    let userProfile = {};
-    
-    // ตัวแปรเก็บค่าจากหน้า Settings
-    let LIFF_QUOTATION = "";
-    let LIFF_REGISTER_URL = "";
+    let currentPackages = []; let currentHeaders = []; let currentAgent = null; let userProfile = {};
+    let LIFF_QUOTATION = ""; let LIFF_REGISTER_URL = "";
 
     window.onload = async () => {
       try {
-        // 1. ดึงข้อมูลตัวแปรจาก Google Sheets (แท็บ Settings) ก่อน
-        const configResponse = await fetch(GAS_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: "getConfig" })
-        }).then(res => res.json());
-
+        const configResponse = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "getConfig" }) }).then(res => res.json());
         if (configResponse.success) {
           LIFF_QUOTATION = configResponse.data.LIFF_QUOTATION;
           LIFF_REGISTER_URL = configResponse.data.LIFF_REGISTER_URL;
-          
-          if (!LIFF_QUOTATION) {
-            Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ไม่พบ LIFF_QUOTATION ในแท็บ Settings', 'error');
-            return;
-          }
-        } else {
-          Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูล Settings ไม่สำเร็จ', 'error');
-          return;
-        }
+          if (!LIFF_QUOTATION) return Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ไม่พบ LIFF_QUOTATION', 'error');
+        } else return Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูล Settings ไม่สำเร็จ', 'error');
 
-        // 2. พอได้รหัส LIFF แล้ว ค่อยเปิดระบบล็อกอิน
         document.getElementById('loadingText').innerText = "กำลังตรวจสอบสิทธิ์ตัวแทน...";
         await liff.init({ liffId: LIFF_QUOTATION });
         
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+        if (!liff.isLoggedIn()) return liff.login();
         userProfile = await liff.getProfile();
         authenticateAgent(userProfile.userId);
-
-      } catch (err) {
-        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้ กรุณารีเฟรช', 'error');
-      }
+      } catch (err) { Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้', 'error'); }
     };
 
     function authenticateAgent(userId) {
-      fetch(GAS_API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "checkAgentStatus", userId: userId })
-      }).then(res => res.json()).then(res => {
+      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "checkAgentStatus", userId: userId }) })
+      .then(res => res.json()).then(res => {
         if (!res.isRegistered) {
-          Swal.fire({ icon: 'warning', title: 'ยังไม่ลงทะเบียน', text: 'คุณต้องลงทะเบียนสมัครตัวแทนก่อนใช้งานครับ', confirmButtonText: 'ไปหน้าลงทะเบียน'
-          }).then(() => { if (LIFF_REGISTER_URL) window.location.href = LIFF_REGISTER_URL; });
-          return;
+          Swal.fire({ icon: 'warning', title: 'ยังไม่ลงทะเบียน', text: 'ไปหน้าลงทะเบียนก่อนใช้งานครับ', confirmButtonText: 'ไปหน้าลงทะเบียน'
+          }).then(() => { if (LIFF_REGISTER_URL) window.location.href = LIFF_REGISTER_URL; }); return;
         }
-        if (res.quotationStatus === "NonActive") {
-          Swal.fire({ icon: 'error', title: 'รออนุมัติสิทธิ์', text: 'สถานะของคุณยังเป็น NonActive โปรดรอแอดมินอนุมัติก่อนใช้งานครับ', showConfirmButton: false });
-          return;
-        }
+        if (res.quotationStatus === "NonActive") return Swal.fire({ icon: 'error', title: 'รออนุมัติสิทธิ์', text: 'รอแอดมินอนุมัติก่อนใช้งานครับ', showConfirmButton: false });
+        
         currentAgent = res;
         document.getElementById('authOverlay').style.display = 'none'; 
       }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถตรวจสอบสิทธิ์ได้', 'error'));
     }
 
+    // 🟢 ระบบแชร์แนะนำเพื่อน 3 ช่องทาง (LINE / Copy Link / QR Code)
     async function shareReferral() {
       if (!currentAgent) return;
       if (!LIFF_REGISTER_URL) return Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ยังไม่ได้ใส่ LIFF_REGISTER_URL ใน Settings', 'warning');
       
       const refLink = `${LIFF_REGISTER_URL}?ref=${userProfile.userId}`;
-      
-      if (liff.isApiAvailable('shareTargetPicker')) {
-        try {
-          const res = await liff.shareTargetPicker([
-            {
-              type: "flex",
-              altText: "เชิญเข้าร่วมทีม POY 365",
-              contents: {
-                type: "bubble",
-                hero: { type: "image", url: "https://images.unsplash.com/photo-1556761175-4b46a572b786?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80", size: "full", aspectRatio: "20:13", aspectMode: "cover" },
-                body: { type: "box", layout: "vertical", contents: [
-                    { type: "text", text: "POY 365", weight: "bold", size: "xl", color: "#1e3a8a" },
-                    { type: "text", text: `ชวนคุณมาร่วมทีมกับ ${currentAgent.fullName}`, size: "sm", color: "#666666", wrap: true, margin: "md" },
-                    { type: "text", text: "สมัครตัวแทนฟรี! ออกใบเสนอราคาง่ายผ่านมือถือ", size: "xs", color: "#aaaaaa", wrap: true, margin: "md" }
-                  ]
-                },
-                footer: { type: "box", layout: "vertical", contents: [
-                    { type: "button", style: "primary", color: "#1e3a8a", action: { type: "uri", label: "สมัครตัวแทนคลิกที่นี่", uri: refLink } }
-                  ]
-                }
-              }
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(refLink)}`;
+
+      Swal.fire({
+        title: '🔗 แชร์ลิงก์แนะนำเพื่อน',
+        html: `
+          <div class="mb-4 mt-2">
+            <p class="text-sm text-gray-600 mb-3 font-medium">ให้เพื่อนสแกน QR Code เพื่อสมัคร</p>
+            <img src="${qrApiUrl}" alt="QR Code" class="mx-auto border-2 border-gray-200 p-2 rounded-xl shadow-sm mb-4" width="200" height="200">
+          </div>
+          <div class="flex flex-col gap-3 mt-4">
+            <button id="btnShareLine" class="bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center transition shadow">
+              <span class="mr-2 text-xl">💬</span> ส่งให้เพื่อนทางแชท LINE
+            </button>
+            <button id="btnCopyLink" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center transition shadow">
+              <span class="mr-2 text-xl">📋</span> คัดลอกลิงก์
+            </button>
+          </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        didOpen: () => {
+          // โค้ดส่งเข้าแชท LINE
+          document.getElementById('btnShareLine').addEventListener('click', async () => {
+            if (liff.isApiAvailable('shareTargetPicker')) {
+              try {
+                const res = await liff.shareTargetPicker([{
+                  type: "flex", altText: "เชิญเข้าร่วมทีม POY 365",
+                  contents: {
+                    type: "bubble",
+                    hero: { type: "image", url: "https://images.unsplash.com/photo-1556761175-4b46a572b786?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80", size: "full", aspectRatio: "20:13", aspectMode: "cover" },
+                    body: { type: "box", layout: "vertical", contents: [
+                        { type: "text", text: "POY 365", weight: "bold", size: "xl", color: "#1e3a8a" },
+                        { type: "text", text: `ชวนคุณมาร่วมทีมกับ ${currentAgent.fullName}`, size: "sm", color: "#666666", wrap: true, margin: "md" },
+                        { type: "text", text: "สมัครตัวแทนฟรี! ออกใบเสนอราคาง่ายผ่านมือถือ", size: "xs", color: "#aaaaaa", wrap: true, margin: "md" }
+                      ]
+                    },
+                    footer: { type: "box", layout: "vertical", contents: [ { type: "button", style: "primary", color: "#1e3a8a", action: { type: "uri", label: "สมัครตัวแทนคลิกที่นี่", uri: refLink } } ] }
+                  }
+                }]);
+                if (res) Swal.fire('สำเร็จ', 'ส่งลิงก์แนะนำให้เพื่อนเรียบร้อยแล้ว', 'success');
+              } catch (e) { console.log("Share canceled"); }
+            } else {
+              Swal.fire('แจ้งเตือน', 'อุปกรณ์นี้ไม่รองรับการส่งเข้าแชท LINE ให้ใช้วิธีคัดลอกลิงก์แทนครับ', 'warning');
             }
-          ]);
-          if (res) Swal.fire('สำเร็จ', 'ส่งลิงก์แนะนำให้เพื่อนเรียบร้อยแล้ว', 'success');
-        } catch (e) {
-          console.log("Share canceled", e);
+          });
+
+          // โค้ดคัดลอกลิงก์
+          document.getElementById('btnCopyLink').addEventListener('click', () => {
+            navigator.clipboard.writeText(refLink);
+            Swal.fire('คัดลอกลิงก์แล้ว!', 'นำลิงก์ไปวางส่งให้เพื่อนได้เลยครับ', 'success');
+          });
         }
-      } else {
-        navigator.clipboard.writeText(refLink);
-        Swal.fire('คัดลอกลิงก์แล้ว', 'นำลิงก์ไปวางส่งให้เพื่อนได้เลยครับ:\n' + refLink, 'info');
-      }
+      });
     }
 
     async function loadPackages() {
@@ -289,11 +301,11 @@
       document.getElementById('docTitle').innerText = titleText.includes('เปรียบเทียบ') ? "ใบเสนอราคาประกันรถยนต์" : "ใบเสนอราคา" + titleText;
 
       if (currentAgent) {
-        document.getElementById('agentFooterDetails').innerText = `${currentAgent.agentCode} ${currentAgent.fullName} | โทร: ${currentAgent.phone}`;
+        document.getElementById('agentFooterDetails').innerHTML = `${currentAgent.agentCode} ${currentAgent.fullName} <br> โทร: ${currentAgent.phone}`;
       }
 
       let html = `<table class="w-full text-base border-collapse"><thead><tr class="table-header text-center"><th class="border-cell w-1/4 text-left">รายละเอียดความคุ้มครอง</th>`;
-      selectedData.forEach(pkg => { html += `<th class="border-cell w-1/4"><div class="font-bold text-xl">${pkg[currentHeaders[0]]}</div><div class="text-sm text-blue-200 mt-1">${pkg[currentHeaders[1]]}</div></th>`; });
+      selectedData.forEach(pkg => { html += `<th class="border-cell w-1/4"><div class="font-bold text-2xl">${pkg[currentHeaders[0]]}</div><div class="text-base text-blue-200 mt-1">${pkg[currentHeaders[1]]}</div></th>`; });
       html += `</tr></thead><tbody>`;
 
       for (let i = 2; i < currentHeaders.length; i++) {
@@ -316,12 +328,17 @@
 
     function removeEditableStyles() { if (document.activeElement) document.activeElement.blur(); document.querySelectorAll('.editable-cell').forEach(c => c.style.borderBottom = 'none'); }
     function restoreEditableStyles() { document.querySelectorAll('.editable-cell').forEach(c => c.style.borderBottom = ''); }
-    async function downloadImage() { Swal.fire({ title: 'กำลังสร้างรูป...', didOpen: () => Swal.showLoading() }); removeEditableStyles(); const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true }); const lnk = document.createElement('a'); lnk.download = `Quotation_${Date.now()}.jpg`; lnk.href = cvs.toDataURL('image/jpeg', 0.9); lnk.click(); restoreEditableStyles(); Swal.close(); }
-    async function downloadPDF() { Swal.fire({ title: 'กำลังสร้าง PDF...', didOpen: () => Swal.showLoading() }); removeEditableStyles(); const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 2, useCORS: true }); const pdf = new jspdf.jsPDF('p', 'mm', 'a4'); pdf.addImage(cvs.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), (cvs.height * pdf.internal.pageSize.getWidth()) / cvs.width); pdf.save(`Quotation_${Date.now()}.pdf`); restoreEditableStyles(); Swal.close(); }
+    
+    // โหลดรูปลด Scale ลงมานิดนึงเพื่อให้ไฟล์ไม่ใหญ่เกินไปตอนส่ง
+    async function downloadImage() { Swal.fire({ title: 'กำลังสร้างรูป...', didOpen: () => Swal.showLoading() }); removeEditableStyles(); const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 1.5, useCORS: true }); const lnk = document.createElement('a'); lnk.download = `Quotation_${Date.now()}.jpg`; lnk.href = cvs.toDataURL('image/jpeg', 0.9); lnk.click(); restoreEditableStyles(); Swal.close(); }
+    async function downloadPDF() { Swal.fire({ title: 'กำลังสร้าง PDF...', didOpen: () => Swal.showLoading() }); removeEditableStyles(); const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 1.5, useCORS: true }); const pdf = new jspdf.jsPDF('p', 'mm', 'a4'); pdf.addImage(cvs.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), (cvs.height * pdf.internal.pageSize.getWidth()) / cvs.width); pdf.save(`Quotation_${Date.now()}.pdf`); restoreEditableStyles(); Swal.close(); }
+    
     async function sendToLine() {
       const uid = document.getElementById('targetUserId').value.trim(); if (!uid) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก LINE User ID', 'warning');
-      Swal.fire({ title: 'กำลังส่งเข้า LINE...', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); removeEditableStyles();
-      const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 1.5, useCORS: true }); const imgB64 = cvs.toDataURL('image/jpeg', 0.8); restoreEditableStyles();
+      Swal.fire({ title: 'กำลังประมวลผลรูปภาพและส่งเข้า LINE...', text: 'อาจใช้เวลา 5-10 วินาที กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() }); removeEditableStyles();
+      
+      // บีบอัด Scale เป็น 1.2 ตอนส่งไลน์ เพื่อให้โหลดไวขึ้น แต่สัดส่วนยังเป็น A4 
+      const cvs = await html2canvas(document.getElementById('quotationCanvas'), { scale: 1.2, useCORS: true }); const imgB64 = cvs.toDataURL('image/jpeg', 0.8); restoreEditableStyles();
       fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "sendQuotation", imageB64: imgB64, userId: uid }) }).then(r => r.json()).then(r => { if (r.success) Swal.fire('สำเร็จ!', 'ส่งใบเสนอราคาเรียบร้อย', 'success'); else Swal.fire('ผิดพลาด', r.error, 'error'); }).catch(e => Swal.fire('ผิดพลาด', 'เชื่อมต่อล้มเหลว', 'error'));
     }
   </script>
