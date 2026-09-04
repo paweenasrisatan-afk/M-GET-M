@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ลงทะเบียนตัวแทน - POY 365</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-900 to-blue-600">
+  
+  <div class="w-full max-w-md glass-card rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+    <div class="text-center mb-6">
+      <h1 class="text-4xl font-bold text-blue-900 mb-2">POY 365</h1>
+      <p class="text-gray-600 font-medium">ระบบบริหารจัดการตัวแทน</p>
+    </div>
+
+    <!-- ส่วน Loading -->
+    <div id="loadingSection" class="text-center py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600 mx-auto mb-4"></div>
+      <p class="text-gray-600">กำลังตรวจสอบข้อมูล...</p>
+    </div>
+
+    <!-- ส่วนแสดงสถานะ (กรณีสมัครแล้ว) -->
+    <div id="statusSection" class="hidden text-center py-6">
+      <div id="statusIcon" class="text-6xl mb-4"></div>
+      <h2 id="statusTitle" class="text-2xl font-bold mb-2"></h2>
+      <p id="statusDesc" class="text-gray-600 mb-6"></p>
+      
+      <div class="bg-gray-50 p-4 rounded-xl border text-left mb-6">
+        <p class="text-sm text-gray-500 mb-1">รหัสตัวแทนของคุณ:</p>
+        <p id="agentCodeDisplay" class="text-xl font-bold text-blue-800"></p>
+        <p id="agentNameDisplay" class="text-md text-gray-700 mt-1"></p>
+      </div>
+
+      <button onclick="liff.closeWindow()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl transition">
+        ปิดหน้าต่าง
+      </button>
+    </div>
+
+    <!-- ส่วนฟอร์มลงทะเบียน (กรณียังไม่สมัคร) -->
+    <div id="registerSection" class="hidden">
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-6 rounded-r">
+        <p class="text-sm text-blue-800">กรุณากรอกข้อมูลเพื่อลงทะเบียนเข้าร่วมทีม POY 365</p>
+      </div>
+
+      <form id="registerForm" onsubmit="submitRegistration(event)">
+        <div class="mb-4">
+          <label class="block text-gray-700 font-semibold mb-2">ชื่อ - นามสกุล (จริง) *</label>
+          <input type="text" id="fullName" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required placeholder="เช่น สมชาย ใจดี">
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 font-semibold mb-2">ชื่อเล่น *</label>
+          <input type="text" id="nickname" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required placeholder="เช่น ชาย">
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 font-semibold mb-2">เบอร์โทรศัพท์ *</label>
+          <input type="tel" id="phone" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required placeholder="เช่น 0812345678" pattern="[0-9]{9,10}">
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+          📝 ยืนยันการลงทะเบียน
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ 1. ใส่ลิงก์ Web App (Exec) ของ Google Apps Script ที่นี่
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
+    
+    let userProfile = {};
+    let refUserId = "";
+    let LIFF_REGISTER_ID = ""; // ตัวแปรสำหรับรับค่าจาก Sheets
+
+    window.onload = async () => {
+      // ดึงพารามิเตอร์รหัสผู้แนะนำจาก URL
+      const urlParams = new URLSearchParams(window.location.search);
+      refUserId = urlParams.get('ref') || "";
+
+      try {
+        // 1. ดึงข้อมูลตัวแปรจาก Google Sheets (แท็บ Settings) ก่อน
+        const configResponse = await fetch(GAS_API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: "getConfig" })
+        }).then(res => res.json());
+
+        if (configResponse.success) {
+          LIFF_REGISTER_ID = configResponse.data.LIFF_REGISTER_ID;
+          
+          if (!LIFF_REGISTER_ID) {
+            Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ไม่พบ LIFF_REGISTER_ID ในแท็บ Settings', 'error');
+            return;
+          }
+        } else {
+          Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูล Settings ไม่สำเร็จ', 'error');
+          return;
+        }
+
+        // 2. พอได้รหัส LIFF แล้ว ค่อยเปิดระบบล็อกอิน
+        await liff.init({ liffId: LIFF_REGISTER_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        userProfile = await liff.getProfile();
+        checkStatus(userProfile.userId);
+        
+      } catch (err) {
+        console.error("LIFF Init Error:", err);
+        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ LINE ได้', 'error');
+      }
+    };
+
+    function checkStatus(userId) {
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "checkAgentStatus", userId: userId })
+      }).then(res => res.json()).then(res => {
+        document.getElementById('loadingSection').classList.add('hidden');
+        
+        if (res.isRegistered) {
+          document.getElementById('statusSection').classList.remove('hidden');
+          document.getElementById('agentCodeDisplay').innerText = res.agentCode;
+          document.getElementById('agentNameDisplay').innerText = res.fullName;
+
+          if (res.quotationStatus === "NonActive") {
+            document.getElementById('statusIcon').innerText = "⏳";
+            document.getElementById('statusTitle').innerText = "รอการอนุมัติ";
+            document.getElementById('statusTitle').className = "text-2xl font-bold mb-2 text-yellow-600";
+            document.getElementById('statusDesc').innerText = "ระบบได้รับข้อมูลของคุณแล้ว กรุณารอแอดมินตรวจสอบและอนุมัติสิทธิ์การใช้งานครับ";
+          } else {
+            document.getElementById('statusIcon').innerText = "✅";
+            document.getElementById('statusTitle').innerText = "สิทธิ์ใช้งาน Active";
+            document.getElementById('statusTitle').className = "text-2xl font-bold mb-2 text-green-600";
+            document.getElementById('statusDesc').innerText = "ยินดีต้อนรับ! คุณสามารถเข้าใช้งานระบบออกใบเสนอราคาได้ตามปกติครับ";
+          }
+        } else {
+          document.getElementById('registerSection').classList.remove('hidden');
+        }
+      }).catch(err => Swal.fire('ข้อผิดพลาด', 'ระบบขัดข้อง กรุณาลองใหม่', 'error'));
+    }
+
+    function submitRegistration(e) {
+      e.preventDefault();
+      
+      const data = {
+        fullName: document.getElementById('fullName').value.trim(),
+        nickname: document.getElementById('nickname').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        userId: userProfile.userId,
+        displayName: userProfile.displayName,
+        pictureUrl: userProfile.pictureUrl,
+        refUserId: refUserId
+      };
+
+      Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "registerAgent", data: data })
+      }).then(res => res.json()).then(res => {
+        if (res.success) {
+          Swal.fire({
+            icon: 'success', title: 'ลงทะเบียนสำเร็จ!',
+            text: `รหัสตัวแทนของคุณคือ ${res.agentCode} กรุณารอแอดมินอนุมัติสิทธิ์ครับ`,
+            confirmButtonText: 'ตกลง'
+          }).then(() => {
+            liff.closeWindow();
+          });
+        } else {
+          Swal.fire('ผิดพลาด', res.error, 'error');
+        }
+      }).catch(err => Swal.fire('ข้อผิดพลาด', 'เชื่อมต่อระบบล้มเหลว', 'error'));
+    }
+  </script>
+</body>
+</html>
+
