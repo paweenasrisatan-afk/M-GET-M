@@ -8,6 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- 🟢 ดึงไฟล์ config.js มาใช้งาน -->
+  <script src="config.js"></script>
+  
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
     .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
@@ -71,43 +75,34 @@
   </div>
 
   <script>
-    // ⚠️ ลิงก์ Web App 
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
+    // 🟢 เรียกใช้ GAS_API_URL จาก config.js
+    const GAS_API_URL = APP_CONFIG.GAS_API_URL;
     
     let userProfile = {};
     let refUserId = "";
-    let LIFF_REGISTER_ID = ""; 
-    let LIFF_QUOTATION = ""; // เพิ่มตัวแปรรองรับการเด้งไปหน้า Quotation
 
+    // 🟢 ไม่ต้องรอดึงข้อมูล API แล้ว ทำงานได้ทันที
     window.onload = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       refUserId = urlParams.get('ref') || "";
 
       try {
-        const configResponse = await fetch(GAS_API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: "getConfig" })
-        }).then(res => res.json());
-
-        if (configResponse.success) {
-          LIFF_REGISTER_ID = configResponse.data.LIFF_REGISTER_ID;
-          LIFF_QUOTATION = configResponse.data.LIFF_QUOTATION; // ดึงรหัส LIFF ใบเสนอราคามาเตรียมไว้
-          
-          if (!LIFF_REGISTER_ID) return Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ไม่พบ LIFF_REGISTER_ID ในแท็บ Settings', 'error');
-        } else {
-          return Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูล Settings ไม่สำเร็จ', 'error');
+        if (!APP_CONFIG.LIFF_REGISTER_ID) {
+          throw new Error("หาตัวแปร LIFF_REGISTER_ID ใน config.js ไม่เจอ");
         }
 
-        await liff.init({ liffId: LIFF_REGISTER_ID });
+        await liff.init({ liffId: APP_CONFIG.LIFF_REGISTER_ID });
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
         }
+        
         userProfile = await liff.getProfile();
         checkStatus(userProfile.userId);
         
       } catch (err) {
-        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ LINE ได้', 'error');
+        console.error("LIFF Init Error:", err);
+        Swal.fire('ตรวจพบข้อผิดพลาด', 'สาเหตุ: ' + err.message, 'error');
       }
     };
 
@@ -143,9 +138,9 @@
             document.getElementById('statusTitle').className = "text-2xl font-bold mb-2 text-green-600";
             document.getElementById('statusDesc').innerText = "ยินดีต้อนรับ! คุณสามารถเข้าใช้งานระบบออกใบเสนอราคาได้ตามปกติครับ";
             
-            // 🟢 ถ้า Active/ALL เพิ่มปุ่มให้เด้งไปหน้า Quotation ได้เลย
+            // 🟢 ดึง LIFF_QUOTATION จาก config.js มาสร้างปุ่มลิงก์
             btnContainer.innerHTML = `
-              <button onclick="window.location.href='https://liff.line.me/${LIFF_QUOTATION}'" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg mb-3">
+              <button onclick="window.location.href='https://liff.line.me/${APP_CONFIG.LIFF_QUOTATION}'" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg mb-3">
                 📄 ไปหน้าออกใบเสนอราคา
               </button>
               <button onclick="liff.closeWindow()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-xl transition">
