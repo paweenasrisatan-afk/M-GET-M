@@ -13,6 +13,9 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
+  <!-- 🟢 ดึงไฟล์ config.js มาใช้งาน -->
+  <script src="config.js"></script>
+  
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f0fdf4; }
     .form-input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1.125rem; margin-top: 0.5rem; transition: border-color 0.2s; }
@@ -188,68 +191,54 @@
   </div>
 
   <script>
-    // 🟢 นำลิงก์ Web App (ที่ได้จาก Deploy ล่าสุด) มาวางตรงนี้
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
+    // 🟢 เรียกใช้ GAS_API_URL จาก config.js
+    const GAS_API_URL = APP_CONFIG.GAS_API_URL;
     
     let lineUserId = "";
     let lineDisplayName = "";
     let linePictureUrl = ""; 
-    let appConfig = {};
     let currentSurveyType = ""; 
     
-    // 🟢 บังคับโหลดการตั้งค่าก่อน ถึงจะให้กดได้
+    // 🟢 โหลดรวดเร็วโดยไม่ต้องรอ API getConfig
     window.onload = async function() {
       const overlay = document.getElementById('loadingOverlay');
       overlay.classList.remove('hidden');
 
       try {
-        let res = await fetch(GAS_API_URL + "?timestamp=" + new Date().getTime(), {
-          method: 'POST',
-          body: JSON.stringify({ action: "getConfig" })
-        });
-        let response = await res.json();
+        // ผูกปุ่มแชร์เข้ากับตัวแปรใน config.js
+        document.getElementById('shareBtn').onclick = () => {
+          let url = APP_CONFIG.URL_SHARE;
+          if(url) {
+            if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
+            else window.open(url, '_blank');
+          } else Swal.fire('ผิดพลาด', 'ไม่พบ URL_SHARE', 'error');
+        };
         
-        if (response.success && response.data) {
-          appConfig = response.data;
-          
-          document.getElementById('shareBtn').onclick = () => {
-            let url = appConfig.SHARE_LIFF_URL;
-            if(url) {
-              if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
-              else window.open(url, '_blank');
-            } else Swal.fire('ผิดพลาด', 'ไม่พบ SHARE_LIFF_URL', 'error');
-          };
-          
-          document.getElementById('qrBtn').onclick = () => {
-            let url = appConfig.QR_LIFF_URL;
-            if(url) {
-              if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
-              else window.open(url, '_blank');
-            } else Swal.fire('ผิดพลาด', 'ไม่พบ QR_LIFF_URL', 'error');
-          };
+        document.getElementById('qrBtn').onclick = () => {
+          let url = APP_CONFIG.URL_QR;
+          if(url) {
+            if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
+            else window.open(url, '_blank');
+          } else Swal.fire('ผิดพลาด', 'ไม่พบ URL_QR', 'error');
+        };
 
-          // ดึง LIFF ID จากแท็บ Settings ของคุณ
-          let targetLiffId = "";
-          if (appConfig.FORM_LIFF_URL && appConfig.FORM_LIFF_URL.includes('liff.line.me/')) {
-             targetLiffId = appConfig.FORM_LIFF_URL.split('liff.line.me/')[1];
+        // เรียกใช้ LIFF_FORM จาก config.js ได้โดยตรง
+        if (APP_CONFIG.LIFF_FORM && typeof liff !== 'undefined') {
+          await liff.init({ liffId: APP_CONFIG.LIFF_FORM });
+          if (liff.isLoggedIn()) {
+            let profile = await liff.getProfile();
+            lineUserId = profile.userId; 
+            lineDisplayName = profile.displayName; 
+            linePictureUrl = profile.pictureUrl; 
+          } else {
+            liff.login();
           }
-          if(!targetLiffId) targetLiffId = appConfig.MAIN_LIFF_ID;
-
-          if (targetLiffId && typeof liff !== 'undefined') {
-            await liff.init({ liffId: targetLiffId });
-            if (liff.isLoggedIn()) {
-              let profile = await liff.getProfile();
-              lineUserId = profile.userId; 
-              lineDisplayName = profile.displayName; 
-              linePictureUrl = profile.pictureUrl; 
-            } else {
-              liff.login();
-            }
-          }
+        } else {
+          throw new Error("ไม่พบ LIFF_FORM ใน config.js");
         }
       } catch(err) {
         console.error("Config Load Error:", err);
-        Swal.fire('ข้อผิดพลาด', 'โหลดการตั้งค่าไม่สำเร็จ กรุณาเช็กสิทธิ์ Deploy ว่าเป็น Anyone หรือไม่', 'error');
+        Swal.fire('ข้อผิดพลาด', 'โหลดการตั้งค่าไม่สำเร็จ กรุณาเช็กไฟล์ config.js', 'error');
       } finally {
         overlay.classList.add('hidden');
       }
