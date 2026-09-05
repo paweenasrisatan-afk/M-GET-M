@@ -77,12 +77,23 @@
           fetch(url)
             .then(response => response.json())
             .then(result => {
-              // 🟢 แก้ปัญหา Error 100% โดยเปลี่ยนจากการเด้งอัตโนมัติมาเป็น "สร้างปุ่มให้กด" แทน
-              if (result.status === "duplicate" || result.status === "success") {
-                const titleMsg = result.status === "duplicate" ? "คุณเคยรับสิทธิ์นี้ไปแล้ว!" : "ยืนยันรับสิทธิ์สำเร็จ!";
-                
+              
+              // 🟢 แยกกรณี "เคยรับสิทธิ์แล้ว" ให้ปุ่มพากลับแชท
+              if (result.status === "duplicate") {
                 document.getElementById('loadingSection').innerHTML = `
-                  <h2 style="color: #1DB446; margin-bottom: 10px; font-size: 24px;">${titleMsg}</h2>
+                  <h2 style="color: #FF9800; margin-bottom: 10px; font-size: 24px;">คุณเคยรับสิทธิ์นี้ไปแล้ว!</h2>
+                  <p style="color: #666; margin-bottom: 25px; font-size: 16px;">
+                    คุณสามารถตรวจสอบสิทธิพิเศษของคุณได้ที่หน้าแชทครับ
+                  </p>
+                  <button onclick="liff.closeWindow()" style="background-color: #1e3a8a; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    💬 กลับสู่หน้าแชท
+                  </button>
+                `;
+              } 
+              // 🟢 แยกกรณี "รับสิทธิ์ครั้งแรก" ให้ปุ่มพาไปหน้าแบบสอบถาม
+              else if (result.status === "success") {
+                document.getElementById('loadingSection').innerHTML = `
+                  <h2 style="color: #1DB446; margin-bottom: 10px; font-size: 24px;">ยืนยันรับสิทธิ์สำเร็จ!</h2>
                   <p style="color: #666; margin-bottom: 25px; font-size: 16px;">
                     กรุณากดปุ่มด้านล่างเพื่อเข้าสู่หน้าแบบสอบถาม
                   </p>
@@ -107,11 +118,10 @@
       }
     }
 
-    // 🟢 ฟังก์ชันพาลูกค้าไปหน้าแบบสอบถามอย่างปลอดภัยด้วยคำสั่งของ LINE
+    // 🟢 ฟังก์ชันพาลูกค้าไปหน้าแบบสอบถามอย่างปลอดภัย
     function goToSurvey() {
       if(liff.isApiAvailable('openWindow')) {
         liff.openWindow({ url: formLiffUrl, external: false });
-        // หน่วงเวลาปิดหน้าต่างเดิมเล็กน้อย เพื่อให้หน้าใหม่เด้งขึ้นมาก่อน
         setTimeout(() => liff.closeWindow(), 500); 
       } else {
         window.location.replace(formLiffUrl);
