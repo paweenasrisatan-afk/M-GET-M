@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบรับสิทธิพิเศษ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <!-- 🟢 ดึงไฟล์ config.js มาใช้งาน -->
+  <script src="config.js"></script>
 </head>
 <body style="background-color: #f5f5f5; text-align: center; font-family: sans-serif; padding-top: 30px; margin: 0;">
   
@@ -23,46 +26,23 @@
   </div>
 
   <script>
-    // ⚠️ ใส่ลิงก์ GAS ตรงนี้ 
-    const gasAppUrl = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec"; 
-
-    // ตัวแปรที่จะถูกดึงมาจากแท็บ Settings
-    let liffId = "";
-    let lineOALink = "";
-    let formLiffUrl = ""; // 🟢 เพิ่มตัวแปรสำหรับเก็บลิงก์แบบสอบถาม
+    // 🟢 ดึงค่าจาก config.js ทันที ไม่ต้องรอโหลด API
+    const gasAppUrl = APP_CONFIG.GAS_API_URL; 
+    
+    // รองรับชื่อตัวแปรทั้งแบบเก่าและแบบใหม่ พร้อมตัดช่องว่างอัตโนมัติ
+    const liffId = (APP_CONFIG.LIFF_MAIN || APP_CONFIG.MAIN_LIFF_ID || "").trim();
+    const lineOALink = (APP_CONFIG.URL_FRIEND || APP_CONFIG.LINE_OA_LINK || "").trim();
+    const formLiffUrl = (APP_CONFIG.URL_FORM || APP_CONFIG.FORM_LIFF_URL || "").trim();
 
     let currentUserId = "", currentUserName = "", currentUserPic = "";
 
-    // 🟢 1. ฟังก์ชันดึงค่าจาก Settings ก่อนเริ่มทำงาน
-    async function loadConfigAndStart() {
-      try {
-        const response = await fetch(gasAppUrl + "?timestamp=" + new Date().getTime(), {
-          method: 'POST',
-          body: JSON.stringify({ action: "getConfig" })
-        });
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          liffId = result.data.MAIN_LIFF_ID; 
-          lineOALink = result.data.LINE_OA_LINK;
-          formLiffUrl = result.data.FORM_LIFF_URL; // 🟢 ดึงลิงก์แบบสอบถามมารอไว้
-          
-          initializeLiff();
-        } else {
-          document.getElementById('statusText').innerText = "ดึงข้อมูลล้มเหลว กรุณาลองใหม่";
-        }
-      } catch (error) {
-        document.getElementById('statusText').innerText = "โหลด Config Error: " + error.message;
-      }
-    }
-
-    // 🟢 2. ฟังก์ชันเริ่มทำงาน LIFF
+    // 🟢 ฟังก์ชันเริ่มทำงาน LIFF (ลบ fetch getConfig ออก เพราะใช้ config.js แล้ว)
     async function initializeLiff() {
       const statusText = document.getElementById('statusText');
       statusText.innerText = "กำลังตรวจสอบข้อมูล...";
       
       try {
-        if (!liffId) throw new Error("ไม่พบ LIFF ID ในระบบ");
+        if (!liffId) throw new Error("ไม่พบ LIFF ID ในไฟล์ config.js");
         
         await liff.init({ liffId: liffId });
         if (!liff.isLoggedIn()) { liff.login(); return; }
@@ -101,7 +81,7 @@
           fetch(url)
             .then(response => response.json())
             .then(result => {
-              // 🟢 แก้ไขตรงนี้: ไม่สั่งปิดหน้าจอ แต่สั่งให้กระโดดไปหน้าแบบสอบถามแทน!
+              // 🟢 ไม่สั่งปิดหน้าจอ แต่สั่งให้กระโดดไปหน้าแบบสอบถามแทน
               if (result.status === "duplicate") {
                 statusText.innerText = "คุณเคยรับสิทธิ์นี้ไปแล้ว\nกำลังพากลับไปหน้าแบบสอบถาม...";
                 setTimeout(() => { 
@@ -121,6 +101,7 @@
             });
 
         } else {
+          // ถ้าไม่มี refId แปลว่าเข้ามาเพื่อกดแชร์เอง
           document.getElementById('loadingSection').style.display = 'none';
           document.getElementById('shareSection').style.display = 'block';
         }
@@ -160,7 +141,8 @@
       } catch (err) { alert("Error: " + err.message); }
     }
 
-    window.onload = loadConfigAndStart;
+    // รันฟังก์ชัน initializeLiff ทันทีเมื่อโหลดหน้าเว็บ
+    window.onload = initializeLiff;
   </script>
 </body>
 </html>
