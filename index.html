@@ -3,11 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- 🟢 โค้ดบังคับไม่ให้ LINE จำ Cache จะได้อัปเดตหน้าเว็บทันที -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
   <title>ระบบรับสิทธิพิเศษ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- 🟢 ดึงไฟล์ config.js มาใช้งาน -->
-  <script src="config.js"></script>
+  <!-- ดึงไฟล์ config.js มาใช้งาน -->
+  <script src="config.js?v=1.1"></script>
 </head>
 <body style="background-color: #f5f5f5; text-align: center; font-family: sans-serif; padding-top: 30px; margin: 0;">
   
@@ -78,7 +84,7 @@
             .then(response => response.json())
             .then(result => {
               
-              // 🟢 แยกกรณี "เคยรับสิทธิ์แล้ว" ให้ปุ่มพากลับแชท
+              // 🟢 แยกกรณี "เคยรับสิทธิ์แล้ว" ให้ปุ่มสีน้ำเงินพากลับแชท
               if (result.status === "duplicate") {
                 document.getElementById('loadingSection').innerHTML = `
                   <h2 style="color: #FF9800; margin-bottom: 10px; font-size: 24px;">คุณเคยรับสิทธิ์นี้ไปแล้ว!</h2>
@@ -90,7 +96,7 @@
                   </button>
                 `;
               } 
-              // 🟢 แยกกรณี "รับสิทธิ์ครั้งแรก" ให้ปุ่มพาไปหน้าแบบสอบถาม
+              // 🟢 แยกกรณี "รับสิทธิ์ครั้งแรก" ให้ปุ่มสีเขียวพาไปหน้าแบบสอบถาม
               else if (result.status === "success") {
                 document.getElementById('loadingSection').innerHTML = `
                   <h2 style="color: #1DB446; margin-bottom: 10px; font-size: 24px;">ยืนยันรับสิทธิ์สำเร็จ!</h2>
@@ -118,7 +124,7 @@
       }
     }
 
-    // 🟢 ฟังก์ชันพาลูกค้าไปหน้าแบบสอบถามอย่างปลอดภัย
+    // ฟังก์ชันพาลูกค้าไปหน้าแบบสอบถามอย่างปลอดภัย
     function goToSurvey() {
       if(liff.isApiAvailable('openWindow')) {
         liff.openWindow({ url: formLiffUrl, external: false });
