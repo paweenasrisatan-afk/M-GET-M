@@ -26,17 +26,13 @@
   </div>
 
   <script>
-    // 🟢 ดึงค่าจาก config.js ทันที ไม่ต้องรอโหลด API
     const gasAppUrl = APP_CONFIG.GAS_API_URL; 
-    
-    // รองรับชื่อตัวแปรทั้งแบบเก่าและแบบใหม่ พร้อมตัดช่องว่างอัตโนมัติ
     const liffId = (APP_CONFIG.LIFF_MAIN || APP_CONFIG.MAIN_LIFF_ID || "").trim();
     const lineOALink = (APP_CONFIG.URL_FRIEND || APP_CONFIG.LINE_OA_LINK || "").trim();
     const formLiffUrl = (APP_CONFIG.URL_FORM || APP_CONFIG.FORM_LIFF_URL || "").trim();
 
     let currentUserId = "", currentUserName = "", currentUserPic = "";
 
-    // 🟢 ฟังก์ชันเริ่มทำงาน LIFF (ลบ fetch getConfig ออก เพราะใช้ config.js แล้ว)
     async function initializeLiff() {
       const statusText = document.getElementById('statusText');
       statusText.innerText = "กำลังตรวจสอบข้อมูล...";
@@ -81,17 +77,19 @@
           fetch(url)
             .then(response => response.json())
             .then(result => {
-              // 🟢 ไม่สั่งปิดหน้าจอ แต่สั่งให้กระโดดไปหน้าแบบสอบถามแทน
-              if (result.status === "duplicate") {
-                statusText.innerText = "คุณเคยรับสิทธิ์นี้ไปแล้ว\nกำลังพากลับไปหน้าแบบสอบถาม...";
-                setTimeout(() => { 
-                  window.location.href = formLiffUrl; // เด้งไปหน้าฟอร์ม
-                }, 2000); 
-              } else if (result.status === "success") {
-                statusText.innerText = "ยืนยันสำเร็จ!\nกำลังพาเข้าสู่หน้าแบบสอบถาม...";
-                setTimeout(() => { 
-                  window.location.href = formLiffUrl; // เด้งไปหน้าฟอร์ม
-                }, 1500);
+              // 🟢 แก้ปัญหา Error 100% โดยเปลี่ยนจากการเด้งอัตโนมัติมาเป็น "สร้างปุ่มให้กด" แทน
+              if (result.status === "duplicate" || result.status === "success") {
+                const titleMsg = result.status === "duplicate" ? "คุณเคยรับสิทธิ์นี้ไปแล้ว!" : "ยืนยันรับสิทธิ์สำเร็จ!";
+                
+                document.getElementById('loadingSection').innerHTML = `
+                  <h2 style="color: #1DB446; margin-bottom: 10px; font-size: 24px;">${titleMsg}</h2>
+                  <p style="color: #666; margin-bottom: 25px; font-size: 16px;">
+                    กรุณากดปุ่มด้านล่างเพื่อเข้าสู่หน้าแบบสอบถาม
+                  </p>
+                  <button onclick="goToSurvey()" style="background-color: #1DB446; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    📝 ไปทำแบบสอบถาม
+                  </button>
+                `;
               } else {
                 statusText.innerText = "Error: " + result.message;
               }
@@ -101,12 +99,22 @@
             });
 
         } else {
-          // ถ้าไม่มี refId แปลว่าเข้ามาเพื่อกดแชร์เอง
           document.getElementById('loadingSection').style.display = 'none';
           document.getElementById('shareSection').style.display = 'block';
         }
       } catch (error) {
         statusText.innerText = "LIFF Error: " + error.message;
+      }
+    }
+
+    // 🟢 ฟังก์ชันพาลูกค้าไปหน้าแบบสอบถามอย่างปลอดภัยด้วยคำสั่งของ LINE
+    function goToSurvey() {
+      if(liff.isApiAvailable('openWindow')) {
+        liff.openWindow({ url: formLiffUrl, external: false });
+        // หน่วงเวลาปิดหน้าต่างเดิมเล็กน้อย เพื่อให้หน้าใหม่เด้งขึ้นมาก่อน
+        setTimeout(() => liff.closeWindow(), 500); 
+      } else {
+        window.location.replace(formLiffUrl);
       }
     }
 
@@ -141,7 +149,6 @@
       } catch (err) { alert("Error: " + err.message); }
     }
 
-    // รันฟังก์ชัน initializeLiff ทันทีเมื่อโหลดหน้าเว็บ
     window.onload = initializeLiff;
   </script>
 </body>
