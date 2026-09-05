@@ -24,7 +24,7 @@
   
   <div class="card" id="qrContainer" style="display: none;">
     <h2>Exclusive QR Code</h2>
-    <p>ให้เพื่อนสแกน QR Code นี้ หรือแคปหน้าจอส่งให้เพื่อน เพื่อมอบสิทธิ์การดูแลที่เหนือกว่า และรับ +100 พอยท์ เมื่อเพื่อนรับสิทธิ์สำเร็จ</p>
+    <p>ให้เพื่อนสแกน QR Code นี้ หรือแคปหน้าจอส่งให้เพื่อน เพื่อมอบสิทธิ์การดูแลที่เหนือกว่า และรับ +50 พอยท์ เมื่อเพื่อนรับสิทธิ์สำเร็จ</p>
     
     <!-- ตรงนี้คือจุดที่รูป QR Code จะมาแสดง -->
     <img id="qrImage" src="" alt="QR Code ของคุณ">
@@ -37,12 +37,12 @@
     async function initQR() {
       document.getElementById('loading').innerText = "กำลังสร้าง QR Code ส่วนตัวของคุณ...";
       try {
-        // ดึงค่าจาก APP_CONFIG (รองรับชื่อตัวแปรทั้งแบบเก่าและใหม่)
-        const qrLiffId = APP_CONFIG.LIFF_QR || APP_CONFIG.QR_LIFF_ID;
-        const mainLiffId = APP_CONFIG.LIFF_MAIN || APP_CONFIG.MAIN_LIFF_ID;
+        // 🟢 เรียกใช้ตัวแปรตรงๆ และบังคับตัดช่องว่างด้วย .trim() เสมอ
+        const qrLiffId = APP_CONFIG.LIFF_QR ? APP_CONFIG.LIFF_QR.trim() : "";
+        const mainLiffId = APP_CONFIG.LIFF_MAIN ? APP_CONFIG.LIFF_MAIN.trim() : "";
 
-        if (!qrLiffId) throw new Error("ไม่พบ LIFF_QR หรือ QR_LIFF_ID ในไฟล์ config.js");
-        if (!mainLiffId) throw new Error("ไม่พบ LIFF_MAIN หรือ MAIN_LIFF_ID ในไฟล์ config.js");
+        if (!qrLiffId) throw new Error("ไม่พบตัวแปร LIFF_QR ในไฟล์ config.js");
+        if (!mainLiffId) throw new Error("ไม่พบตัวแปร LIFF_MAIN ในไฟล์ config.js");
 
         await liff.init({ liffId: qrLiffId }); 
         if (!liff.isLoggedIn()) { liff.login(); return; }
