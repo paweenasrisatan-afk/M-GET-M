@@ -172,19 +172,45 @@
       } catch (err) { Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้', 'error'); }
     };
 
-    function authenticateAgent(userId) {
+    function authenticateAgent(userId, safetyTimer) {
       fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "checkAgentStatus", userId: userId }) })
-      .then(res => res.json()).then(res => {
+      .then(res => res.json())
+      .then(res => {
+        clearTimeout(safetyTimer);
+        document.getElementById('authOverlay').style.display = 'none'; 
+
+        // 🌟 เช็คเงื่อนไขตามโครงสร้างข้อมูลจริงในชีต Agent_Data
         if (!res.isRegistered) {
-          Swal.fire({ icon: 'warning', title: 'ยังไม่ลงทะเบียน', text: 'ไปหน้าลงทะเบียนก่อนใช้งานครับ', confirmButtonText: 'ไปหน้าลงทะเบียน'
-          }).then(() => { if (LIFF_REGISTER_URL) window.location.href = LIFF_REGISTER_URL; }); return;
+          Swal.fire({ 
+            icon: 'warning', 
+            title: 'ยังไม่ลงทะเบียน', 
+            text: 'ไปหน้าลงทะเบียนก่อนใช้งานครับ', 
+            confirmButtonText: 'ไปหน้าลงทะเบียน'
+          }).then(() => { 
+            if (typeof AGENT_LIFF_ID !== 'undefined') {
+              window.location.href = "https://liff.line.me/" + AGENT_LIFF_ID; 
+            }
+          }); 
+          return;
         }
-        if (res.quotationStatus === "NonActive") return Swal.fire({ icon: 'error', title: 'รออนุมัติสิทธิ์', text: 'รอแอดมินอนุมัติก่อนใช้งานครับ', showConfirmButton: false });
+
+        if (res.quotationStatus === "NonActive") {
+          Swal.fire({ icon: 'error', title: 'รออนุมัติสิทธิ์', text: 'รอแอดมินอนุมัติก่อนใช้งานครับ', showConfirmButton: false });
+          return;
+        }
         
         currentAgent = res;
-        document.getElementById('authOverlay').style.display = 'none'; 
-      }).catch(err => Swal.fire('ข้อผิดพลาด', 'ไม่สามารถตรวจสอบสิทธิ์ได้', 'error'));
+
+        // 🌟 [เพิ่มตรงนี้] ดึง User ID ของตัวแทนมาใส่เป็นค่าตั้งต้นในช่อง input ทันที
+        document.getElementById('targetUserId').value = userId;
+
+      })
+      .catch(err => {
+        clearTimeout(safetyTimer);
+        document.getElementById('authOverlay').style.display = 'none';
+      });
     }
+
 
     // 🟢 ระบบแชร์แนะนำเพื่อน 3 ช่องทาง (LINE / Copy Link / QR Code)
     async function shareReferral() {
