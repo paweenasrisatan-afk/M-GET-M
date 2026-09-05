@@ -28,3 +28,13 @@ const APP_CONFIG = {
   REWARD_POINT: 50
 };
 
+// ==========================================
+// 🛡️ โค้ดพระเอก: ระบบหั่นช่องว่าง (Trim) อัตโนมัติป้องกัน Error ให้ทุกไฟล์
+// ==========================================
+Object.keys(APP_CONFIG).forEach(key => {
+  if (typeof APP_CONFIG[key] === 'string') {
+    APP_CONFIG[key] = APP_CONFIG[key].trim();
+  }
+});
+
+
