@@ -10,6 +10,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- 🟢 ดึงไฟล์ config.js มาใช้งาน -->
+  <script src="config.js"></script>
+  
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
     
@@ -148,28 +152,29 @@
   </div>
 
   <script>
-    // ⚠️ ลิงก์ Web App
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2K9DLTTWTAYkPR5v23ZHkCSNISqiF_gkvVnzHZJJCA-_YnNUKoySCTSwnQeLAvmOENw/exec";
+    // 🟢 เรียกใช้ GAS_API_URL จาก config.js
+    const GAS_API_URL = APP_CONFIG.GAS_API_URL;
     
     let currentPackages = []; let currentHeaders = []; let currentAgent = null; let userProfile = {};
-    let LIFF_QUOTATION = ""; let LIFF_REGISTER_URL = "";
 
     window.onload = async () => {
       try {
-        const configResponse = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "getConfig" }) }).then(res => res.json());
-        if (configResponse.success) {
-          LIFF_QUOTATION = configResponse.data.LIFF_QUOTATION;
-          LIFF_REGISTER_URL = configResponse.data.LIFF_REGISTER_URL;
-          if (!LIFF_QUOTATION) return Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ไม่พบ LIFF_QUOTATION', 'error');
-        } else return Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูล Settings ไม่สำเร็จ', 'error');
+        if (!APP_CONFIG.LIFF_QUOTATION) {
+          throw new Error("ไม่พบ LIFF_QUOTATION ในไฟล์ config.js");
+        }
 
         document.getElementById('loadingText').innerText = "กำลังตรวจสอบสิทธิ์ตัวแทน...";
-        await liff.init({ liffId: LIFF_QUOTATION });
+        
+        // ใส่ .trim() เพื่อป้องกันการก๊อปปี้ช่องว่างติดมา
+        await liff.init({ liffId: APP_CONFIG.LIFF_QUOTATION.trim() });
         
         if (!liff.isLoggedIn()) return liff.login();
         userProfile = await liff.getProfile();
         authenticateAgent(userProfile.userId);
-      } catch (err) { Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้', 'error'); }
+      } catch (err) { 
+        console.error("Init Error:", err);
+        Swal.fire('ข้อผิดพลาด', err.message || 'ไม่สามารถเชื่อมต่อระบบได้', 'error'); 
+      }
     };
 
     function authenticateAgent(userId, safetyTimer) {
@@ -179,7 +184,7 @@
         clearTimeout(safetyTimer);
         document.getElementById('authOverlay').style.display = 'none'; 
 
-        // 🌟 เช็คเงื่อนไขตามโครงสร้างข้อมูลจริงในชีต Agent_Data
+        // 🌟 เช็คเงื่อนไขตามโครงสร้างข้อมูลจริง
         if (!res.isRegistered) {
           Swal.fire({ 
             icon: 'warning', 
@@ -187,8 +192,11 @@
             text: 'ไปหน้าลงทะเบียนก่อนใช้งานครับ', 
             confirmButtonText: 'ไปหน้าลงทะเบียน'
           }).then(() => { 
-            if (typeof AGENT_LIFF_ID !== 'undefined') {
-              window.location.href = "https://liff.line.me/" + AGENT_LIFF_ID; 
+            // เปลี่ยนมาใช้ URL_REGISTER จาก config.js
+            if (APP_CONFIG.URL_REGISTER) {
+              window.location.href = APP_CONFIG.URL_REGISTER; 
+            } else if (APP_CONFIG.LIFF_REGISTER_ID) {
+              window.location.href = "https://liff.line.me/" + APP_CONFIG.LIFF_REGISTER_ID; 
             }
           }); 
           return;
@@ -201,7 +209,7 @@
         
         currentAgent = res;
 
-        // 🌟 [เพิ่มตรงนี้] ดึง User ID ของตัวแทนมาใส่เป็นค่าตั้งต้นในช่อง input ทันที
+        // 🌟 ดึง User ID ของตัวแทนมาใส่เป็นค่าตั้งต้นในช่อง input ทันที
         document.getElementById('targetUserId').value = userId;
 
       })
@@ -211,13 +219,14 @@
       });
     }
 
-
     // 🟢 ระบบแชร์แนะนำเพื่อน 3 ช่องทาง (LINE / Copy Link / QR Code)
     async function shareReferral() {
       if (!currentAgent) return;
-      if (!LIFF_REGISTER_URL) return Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ยังไม่ได้ใส่ LIFF_REGISTER_URL ใน Settings', 'warning');
       
-      const refLink = `${LIFF_REGISTER_URL}?ref=${userProfile.userId}`;
+      const registerUrl = APP_CONFIG.URL_REGISTER;
+      if (!registerUrl) return Swal.fire('ตั้งค่าไม่สมบูรณ์', 'ยังไม่ได้ใส่ URL_REGISTER ใน config.js', 'warning');
+      
+      const refLink = `${registerUrl}?ref=${userProfile.userId}`;
       const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(refLink)}`;
 
       Swal.fire({
