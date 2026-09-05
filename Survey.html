@@ -199,7 +199,6 @@
     let linePictureUrl = ""; 
     let currentSurveyType = ""; 
     
-    // 🟢 โหลดรวดเร็วโดยไม่ต้องรอ API getConfig
     window.onload = async function() {
       const overlay = document.getElementById('loadingOverlay');
       overlay.classList.remove('hidden');
@@ -211,7 +210,7 @@
           if(url) {
             if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
             else window.open(url, '_blank');
-          } else Swal.fire('ผิดพลาด', 'ไม่พบ URL_SHARE', 'error');
+          } else Swal.fire('ผิดพลาด', 'ไม่พบ URL_SHARE ใน config.js', 'error');
         };
         
         document.getElementById('qrBtn').onclick = () => {
@@ -219,11 +218,16 @@
           if(url) {
             if (typeof liff !== 'undefined' && liff.isInClient()) liff.openWindow({ url: url, external: false });
             else window.open(url, '_blank');
-          } else Swal.fire('ผิดพลาด', 'ไม่พบ URL_QR', 'error');
+          } else Swal.fire('ผิดพลาด', 'ไม่พบ URL_QR ใน config.js', 'error');
         };
 
-        // เรียกใช้ LIFF_FORM จาก config.js ได้โดยตรง
-        if (APP_CONFIG.LIFF_FORM && typeof liff !== 'undefined') {
+        // 🟢 ตรวจสอบว่ามีค่า LIFF_FORM หรือไม่
+        if (!APP_CONFIG.LIFF_FORM) {
+          throw new Error("หาตัวแปร LIFF_FORM ใน config.js ไม่เจอ");
+        }
+
+        // 🟢 เรียกใช้ LIFF_FORM
+        if (typeof liff !== 'undefined') {
           await liff.init({ liffId: APP_CONFIG.LIFF_FORM });
           if (liff.isLoggedIn()) {
             let profile = await liff.getProfile();
@@ -234,11 +238,12 @@
             liff.login();
           }
         } else {
-          throw new Error("ไม่พบ LIFF_FORM ใน config.js");
+          throw new Error("LINE SDK ไม่ทำงาน");
         }
       } catch(err) {
         console.error("Config Load Error:", err);
-        Swal.fire('ข้อผิดพลาด', 'โหลดการตั้งค่าไม่สำเร็จ กรุณาเช็กไฟล์ config.js', 'error');
+        // 🚨 เปลี่ยนให้โชว์สาเหตุ Error ของจริงออกมาเลย จะได้รู้ว่าติดที่ไหน
+        Swal.fire('ตรวจพบข้อผิดพลาด', 'สาเหตุ: ' + err.message, 'error');
       } finally {
         overlay.classList.add('hidden');
       }
