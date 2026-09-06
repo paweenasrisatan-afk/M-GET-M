@@ -134,37 +134,102 @@
       }
     }
 
-    async function executeShare() {
-      if (!liff.isApiAvailable('shareTargetPicker')) return alert("แอป LINE ไม่รองรับ");
+    async function executeShareasync function executeShare() {
+      if (!liff.isApiAvailable('shareTargetPicker')) return alert("แอป LINE ไม่รองรับการแชร์ในหน้าต่างนี้");
       try {
+        // สร้างลิงก์ที่มีรหัสผู้แนะนำ
         const trackingLink = "https://liff.line.me/" + liffId + "?refId=" + encodeURIComponent(currentUserId) + "&refName=" + encodeURIComponent(currentUserName) + "&refPic=" + encodeURIComponent(currentUserPic);
         
         await liff.shareTargetPicker([{
           "type": "flex",
-          "altText": currentUserName + " มอบสิทธิพิเศษให้คุณ",
+          "altText": currentUserName + " ส่งของขวัญสิทธิพิเศษให้คุณ 🎁",
           "contents": {
             "type": "bubble",
+            "hero": {
+              "type": "image",
+              // 💡 แนะนำ: คุณสามารถไปทำรูปแบนเนอร์แนวนอนใน Canva ใส่โลโก้แบรนด์ดังๆ แล้วเอาลิงก์รูปมาใส่แทน URL นึ้ได้ครับ
+              "url": "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+              "size": "full",
+              "aspectRatio": "20:13",
+              "aspectMode": "cover"
+            },
             "body": {
-              "type": "box", "layout": "vertical",
+              "type": "box",
+              "layout": "vertical",
               "contents": [
-                { "type": "text", "text": "Exclusive Privilege", "weight": "bold", "color": "#D4AF37", "size": "sm" },
-                { "type": "text", "text": "สิทธิประโยชน์ที่คุ้มค่ากว่า", "weight": "bold", "size": "xl", "margin": "md" },
-                { "type": "text", "text": "เพื่อนของคุณ (" + currentUserName + ") มอบคูปองพิเศษสำหรับคุณโดยเฉพาะ", "wrap": true, "margin": "md", "color": "#666666" }
+                {
+                  "type": "text",
+                  "text": "🎁 EXCLUSIVE VOUCHER",
+                  "weight": "bold",
+                  "color": "#D4AF37",
+                  "size": "sm"
+                },
+                {
+                  "type": "text",
+                  "text": "รับฟรี 50 พอยท์!",
+                  "weight": "bold",
+                  "size": "xxl",
+                  "margin": "md",
+                  "color": "#1e3a8a"
+                },
+                {
+                  "type": "text",
+                  "text": "นำไปแลกรับสิทธิพิเศษจากแบรนด์ชั้นนำ เช่น Starbucks, Suki Teenoi, Dairy Queen, MK และอีกมากมาย",
+                  "size": "xs",
+                  "color": "#666666",
+                  "wrap": true,
+                  "margin": "md"
+                },
+                {
+                  "type": "separator",
+                  "margin": "lg"
+                },
+                {
+                  "type": "box",
+                  "layout": "vertical",
+                  "margin": "lg",
+                  "spacing": "sm",
+                  "contents": [
+                    {
+                      "type": "box",
+                      "layout": "baseline",
+                      "spacing": "sm",
+                      "contents": [
+                        { "type": "text", "text": "ผู้มอบสิทธิ์", "color": "#aaaaaa", "size": "sm", "flex": 2 },
+                        { "type": "text", "text": currentUserName, "wrap": true, "color": "#1DB446", "size": "sm", "flex": 5, "weight": "bold" }
+                      ]
+                    }
+                  ]
+                }
               ]
             },
             "footer": {
-              "type": "box", "layout": "vertical",
-              "contents": [{
-                "type": "button", "style": "primary", "color": "#1DB446",
-                "action": { "type": "uri", "label": "กดรับสิทธิ์ทันที", "uri": trackingLink }
-              }]
+              "type": "box",
+              "layout": "vertical",
+              "spacing": "sm",
+              "contents": [
+                {
+                  "type": "button",
+                  "style": "primary",
+                  "height": "sm",
+                  "color": "#1DB446",
+                  "action": {
+                    "type": "uri",
+                    "label": "👇 คลิกรับสิทธิ์ด่วน",
+                    "uri": trackingLink
+                  }
+                }
+              ],
+              "flex": 0
             }
           }
         }], { isMultiple: true });
+        
         liff.closeWindow();
-      } catch (err) { alert("Error: " + err.message); }
+      } catch (err) { 
+        alert("Error: " + err.message); 
+      }
     }
-
     window.onload = initializeLiff;
   </script>
 </body>
