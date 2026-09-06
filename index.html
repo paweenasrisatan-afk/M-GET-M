@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- 🟢 โค้ดบังคับไม่ให้ LINE จำ Cache จะได้อัปเดตหน้าเว็บทันที -->
+  <!-- 🟢 โค้ดบังคับไม่ให้ LINE จำ Cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -12,8 +12,8 @@
   <title>ระบบรับสิทธิพิเศษ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- ดึงไฟล์ config.js มาใช้งาน -->
-  <script src="config.js?v=1.1"></script>
+  <!-- 🟢 บังคับโหลด config.js ใหม่เสมอ -->
+  <script src="config.js?v=5"></script>
 </head>
 <body style="background-color: #f5f5f5; text-align: center; font-family: sans-serif; padding-top: 30px; margin: 0;">
   
@@ -32,19 +32,30 @@
   </div>
 
   <script>
-    const gasAppUrl = APP_CONFIG.GAS_API_URL; 
-    const liffId = (APP_CONFIG.LIFF_MAIN || APP_CONFIG.MAIN_LIFF_ID || "").trim();
-    const lineOALink = (APP_CONFIG.URL_FRIEND || APP_CONFIG.LINE_OA_LINK || "").trim();
-    const formLiffUrl = (APP_CONFIG.URL_FORM || APP_CONFIG.FORM_LIFF_URL || "").trim();
-
+    let gasAppUrl = "", liffId = "", lineOALink = "", formLiffUrl = "";
     let currentUserId = "", currentUserName = "", currentUserPic = "";
 
-    async function initializeLiff() {
+    window.onload = async function() {
       const statusText = document.getElementById('statusText');
-      statusText.innerText = "กำลังตรวจสอบข้อมูล...";
       
       try {
-        if (!liffId) throw new Error("ไม่พบ LIFF ID ในไฟล์ config.js");
+        // 🟢 1. เช็กว่าไฟล์ config.js โหลดมาสมบูรณ์ไหม
+        if (typeof APP_CONFIG === 'undefined') {
+          throw new Error("โหลดไฟล์ config.js ไม่สำเร็จ (โปรดเช็กว่าเผลอลบเครื่องหมาย , หรือเครื่องหมายคำพูดในไฟล์ config หรือไม่)");
+        }
+        
+        statusText.innerText = "กำลังตรวจสอบข้อมูล...";
+        
+        gasAppUrl = APP_CONFIG.GAS_API_URL; 
+        lineOALink = (APP_CONFIG.URL_FRIEND || APP_CONFIG.LINE_OA_LINK || "").trim();
+        formLiffUrl = (APP_CONFIG.URL_FORM || APP_CONFIG.FORM_LIFF_URL || "").trim();
+
+        // 🟢 2. สกัดเอาเฉพาะ LIFF ID ที่ถูกต้อง (แก้ปัญหา Invalid LIFF)
+        let rawLiff = APP_CONFIG.LIFF_MAIN || APP_CONFIG.MAIN_LIFF_ID || "";
+        let matchId = String(rawLiff).match(/\d{10}-[a-zA-Z0-9]{8}/);
+        liffId = matchId ? matchId[0] : "";
+
+        if (!liffId) throw new Error("ไม่พบ LIFF_MAIN ในไฟล์ config.js หรือใส่รูปแบบผิด");
         
         await liff.init({ liffId: liffId });
         if (!liff.isLoggedIn()) { liff.login(); return; }
@@ -63,9 +74,7 @@
           
           if (!friendship.friendFlag) {
             statusText.innerHTML = "คุณต้องเพิ่มเพื่อนก่อนเพื่อรับสิทธิ์<br>กำลังพาคุณไปยังหน้าเพิ่มเพื่อน...";
-            setTimeout(() => {
-              window.location.href = lineOALink;
-            }, 2500);
+            setTimeout(() => { window.location.href = lineOALink; }, 2500);
             return; 
           }
 
@@ -83,36 +92,24 @@
           fetch(url)
             .then(response => response.json())
             .then(result => {
-              
-              // 🟢 แยกกรณี "เคยรับสิทธิ์แล้ว" ให้ปุ่มสีน้ำเงินพากลับแชท
               if (result.status === "duplicate") {
                 document.getElementById('loadingSection').innerHTML = `
                   <h2 style="color: #FF9800; margin-bottom: 10px; font-size: 24px;">คุณเคยรับสิทธิ์นี้ไปแล้ว!</h2>
-                  <p style="color: #666; margin-bottom: 25px; font-size: 16px;">
-                    คุณสามารถตรวจสอบสิทธิพิเศษของคุณได้ที่หน้าแชทครับ
-                  </p>
-                  <button onclick="liff.closeWindow()" style="background-color: #1e3a8a; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    💬 กลับสู่หน้าแชท
-                  </button>
+                  <p style="color: #666; margin-bottom: 25px; font-size: 16px;">คุณสามารถตรวจสอบสิทธิพิเศษของคุณได้ที่หน้าแชทครับ</p>
+                  <button onclick="liff.closeWindow()" style="background-color: #1e3a8a; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">💬 กลับสู่หน้าแชท</button>
                 `;
-              } 
-              // 🟢 แยกกรณี "รับสิทธิ์ครั้งแรก" ให้ปุ่มสีเขียวพาไปหน้าแบบสอบถาม
-              else if (result.status === "success") {
+              } else if (result.status === "success") {
                 document.getElementById('loadingSection').innerHTML = `
                   <h2 style="color: #1DB446; margin-bottom: 10px; font-size: 24px;">ยืนยันรับสิทธิ์สำเร็จ!</h2>
-                  <p style="color: #666; margin-bottom: 25px; font-size: 16px;">
-                    กรุณากดปุ่มด้านล่างเพื่อเข้าสู่หน้าแบบสอบถาม
-                  </p>
-                  <button onclick="goToSurvey()" style="background-color: #1DB446; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    📝 ไปทำแบบสอบถาม
-                  </button>
+                  <p style="color: #666; margin-bottom: 25px; font-size: 16px;">กรุณากดปุ่มด้านล่างเพื่อเข้าสู่หน้าแบบสอบถาม</p>
+                  <button onclick="goToSurvey()" style="background-color: #1DB446; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📝 ไปทำแบบสอบถาม</button>
                 `;
               } else {
-                statusText.innerText = "Error: " + result.message;
+                statusText.innerHTML = `<span style="color:red;">Error: ${result.message}</span>`;
               }
             })
             .catch(err => {
-              statusText.innerText = "Error: " + err;
+              statusText.innerHTML = `<span style="color:red;">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้: ${err}</span>`;
             });
 
         } else {
@@ -120,11 +117,11 @@
           document.getElementById('shareSection').style.display = 'block';
         }
       } catch (error) {
-        statusText.innerText = "LIFF Error: " + error.message;
+        // 🚨 ถ้ามี Error โค้ดจะหยุดหมุน แล้วเด้งบอกทันทีว่าผิดที่อะไร!
+        statusText.innerHTML = `<span style="color:red; font-size: 14px;"><b>ระบบขัดข้อง:</b><br>${error.message}</span>`;
       }
-    }
+    };
 
-    // ฟังก์ชันพาลูกค้าไปหน้าแบบสอบถามอย่างปลอดภัย
     function goToSurvey() {
       if(liff.isApiAvailable('openWindow')) {
         liff.openWindow({ url: formLiffUrl, external: false });
@@ -134,10 +131,9 @@
       }
     }
 
-    async function executeShareasync function executeShare() {
-      if (!liff.isApiAvailable('shareTargetPicker')) return alert("แอป LINE ไม่รองรับการแชร์ในหน้าต่างนี้");
+    async function executeShare() {
+      if (!liff.isApiAvailable('shareTargetPicker')) return alert("แอป LINE ไม่รองรับ");
       try {
-        // สร้างลิงก์ที่มีรหัสผู้แนะนำ
         const trackingLink = "https://liff.line.me/" + liffId + "?refId=" + encodeURIComponent(currentUserId) + "&refName=" + encodeURIComponent(currentUserName) + "&refPic=" + encodeURIComponent(currentUserPic);
         
         await liff.shareTargetPicker([{
@@ -147,54 +143,20 @@
             "type": "bubble",
             "hero": {
               "type": "image",
-              // 💡 แนะนำ: คุณสามารถไปทำรูปแบนเนอร์แนวนอนใน Canva ใส่โลโก้แบรนด์ดังๆ แล้วเอาลิงก์รูปมาใส่แทน URL นึ้ได้ครับ
               "url": "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
               "size": "full",
               "aspectRatio": "20:13",
               "aspectMode": "cover"
             },
             "body": {
-              "type": "box",
-              "layout": "vertical",
-              "contents": [
+              "type": "box", "layout": "vertical", "contents": [
+                { "type": "text", "text": "🎁 EXCLUSIVE VOUCHER", "weight": "bold", "color": "#D4AF37", "size": "sm" },
+                { "type": "text", "text": "รับฟรี 50 พอยท์!", "weight": "bold", "size": "xxl", "margin": "md", "color": "#1e3a8a" },
+                { "type": "text", "text": "นำไปแลกรับสิทธิพิเศษจากแบรนด์ชั้นนำ เช่น Starbucks, Suki Teenoi, Dairy Queen, MK และอีกมากมาย", "size": "xs", "color": "#666666", "wrap": true, "margin": "md" },
+                { "type": "separator", "margin": "lg" },
                 {
-                  "type": "text",
-                  "text": "🎁 EXCLUSIVE VOUCHER",
-                  "weight": "bold",
-                  "color": "#D4AF37",
-                  "size": "sm"
-                },
-                {
-                  "type": "text",
-                  "text": "รับฟรี 50 พอยท์!",
-                  "weight": "bold",
-                  "size": "xxl",
-                  "margin": "md",
-                  "color": "#1e3a8a"
-                },
-                {
-                  "type": "text",
-                  "text": "นำไปแลกรับสิทธิพิเศษจากแบรนด์ชั้นนำ เช่น Starbucks, Suki Teenoi, Dairy Queen, MK และอีกมากมาย",
-                  "size": "xs",
-                  "color": "#666666",
-                  "wrap": true,
-                  "margin": "md"
-                },
-                {
-                  "type": "separator",
-                  "margin": "lg"
-                },
-                {
-                  "type": "box",
-                  "layout": "vertical",
-                  "margin": "lg",
-                  "spacing": "sm",
-                  "contents": [
-                    {
-                      "type": "box",
-                      "layout": "baseline",
-                      "spacing": "sm",
-                      "contents": [
+                  "type": "box", "layout": "vertical", "margin": "lg", "spacing": "sm", "contents": [
+                    { "type": "box", "layout": "baseline", "spacing": "sm", "contents": [
                         { "type": "text", "text": "ผู้มอบสิทธิ์", "color": "#aaaaaa", "size": "sm", "flex": 2 },
                         { "type": "text", "text": currentUserName, "wrap": true, "color": "#1DB446", "size": "sm", "flex": 5, "weight": "bold" }
                       ]
@@ -204,33 +166,15 @@
               ]
             },
             "footer": {
-              "type": "box",
-              "layout": "vertical",
-              "spacing": "sm",
-              "contents": [
-                {
-                  "type": "button",
-                  "style": "primary",
-                  "height": "sm",
-                  "color": "#1DB446",
-                  "action": {
-                    "type": "uri",
-                    "label": "👇 คลิกรับสิทธิ์ด่วน",
-                    "uri": trackingLink
-                  }
-                }
-              ],
-              "flex": 0
+              "type": "box", "layout": "vertical", "spacing": "sm", "contents": [
+                { "type": "button", "style": "primary", "height": "sm", "color": "#1DB446", "action": { "type": "uri", "label": "👇 คลิกรับสิทธิ์ด่วน", "uri": trackingLink } }
+              ], "flex": 0
             }
           }
         }], { isMultiple: true });
-        
         liff.closeWindow();
-      } catch (err) { 
-        alert("Error: " + err.message); 
-      }
+      } catch (err) { alert("Error: " + err.message); }
     }
-    window.onload = initializeLiff;
   </script>
 </body>
 </html>
