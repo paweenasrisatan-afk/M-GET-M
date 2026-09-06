@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- 🟢 โค้ดบังคับไม่ให้ LINE จำ Cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -12,8 +11,7 @@
   <title>ระบบรับสิทธิพิเศษ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <!-- 🟢 บังคับโหลด config.js ใหม่เสมอ -->
-  <script src="config.js?v=5"></script>
+  <script src="config.js?v=999"></script>
 </head>
 <body style="background-color: #f5f5f5; text-align: center; font-family: sans-serif; padding-top: 30px; margin: 0;">
   
@@ -39,23 +37,21 @@
       const statusText = document.getElementById('statusText');
       
       try {
-        // 🟢 1. เช็กว่าไฟล์ config.js โหลดมาสมบูรณ์ไหม
         if (typeof APP_CONFIG === 'undefined') {
-          throw new Error("โหลดไฟล์ config.js ไม่สำเร็จ (โปรดเช็กว่าเผลอลบเครื่องหมาย , หรือเครื่องหมายคำพูดในไฟล์ config หรือไม่)");
+          throw new Error("หาไฟล์ config.js ไม่เจอ หรือมีพิมพ์โค้ดผิดในไฟล์ config.js ครับ");
         }
         
         statusText.innerText = "กำลังตรวจสอบข้อมูล...";
         
-        gasAppUrl = APP_CONFIG.GAS_API_URL; 
+        gasAppUrl = APP_CONFIG.GAS_API_URL || ""; 
         lineOALink = (APP_CONFIG.URL_FRIEND || APP_CONFIG.LINE_OA_LINK || "").trim();
         formLiffUrl = (APP_CONFIG.URL_FORM || APP_CONFIG.FORM_LIFF_URL || "").trim();
 
-        // 🟢 2. สกัดเอาเฉพาะ LIFF ID ที่ถูกต้อง (แก้ปัญหา Invalid LIFF)
         let rawLiff = APP_CONFIG.LIFF_MAIN || APP_CONFIG.MAIN_LIFF_ID || "";
         let matchId = String(rawLiff).match(/\d{10}-[a-zA-Z0-9]{8}/);
         liffId = matchId ? matchId[0] : "";
 
-        if (!liffId) throw new Error("ไม่พบ LIFF_MAIN ในไฟล์ config.js หรือใส่รูปแบบผิด");
+        if (!liffId) throw new Error("LIFF_MAIN ในไฟล์ config.js ผิดรูปแบบครับ");
         
         await liff.init({ liffId: liffId });
         if (!liff.isLoggedIn()) { liff.login(); return; }
@@ -117,7 +113,6 @@
           document.getElementById('shareSection').style.display = 'block';
         }
       } catch (error) {
-        // 🚨 ถ้ามี Error โค้ดจะหยุดหมุน แล้วเด้งบอกทันทีว่าผิดที่อะไร!
         statusText.innerHTML = `<span style="color:red; font-size: 14px;"><b>ระบบขัดข้อง:</b><br>${error.message}</span>`;
       }
     };
