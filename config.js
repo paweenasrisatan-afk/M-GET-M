@@ -9,7 +9,7 @@ const APP_CONFIG = {
   // 2. ข้อมูล LIFF ID สำหรับใช้ในฟังก์ชัน liff.init()
   LIFF_MAIN: "2010894828-FWOl6zme",
   LIFF_QR: "2010894828-9WloHvv9",
-  LIFF_FORM: "2010894828-Ge6qDj7e",
+  LIFF_FORM: "2010894828-Ge6gDj7e",
   LIFF_SHARE: "2010894828-FWOl6zme",
   LIFF_POLICY: "2010894828-Oyj63Qc3",
   LIFF_QUOTATION: "2010894828-PMxAjpX9",
@@ -17,7 +17,7 @@ const APP_CONFIG = {
 
   // 3. ข้อมูล URL เต็ม (สำหรับแชร์หรือทำปุ่มกด)
   URL_FRIEND: "https://line.me/R/ti/p/@poy365",
-  URL_FORM: "https://liff.line.me/2010894828-Ge6qDj7e",
+  URL_FORM: "https://liff.line.me/2010894828-Ge6gDj7e",
   URL_SHARE: "https://liff.line.me/2010894828-FWOl6zme",
   URL_QR: "https://liff.line.me/2010894828-9WloHvv9",
   URL_POLICY: "https://liff.line.me/2010894828-Oyj63Qc3",
