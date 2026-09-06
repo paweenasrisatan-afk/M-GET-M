@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- 🟢 ป้องกันการจำ Cache ระดับ HTML -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  
   <title>แบบสำรวจงานวิจัยการตลาด - BLA</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,8 +13,8 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
-  <!-- 🟢 ทริคปราบ Cache! เติม ?v=2 ต่อท้าย เพื่อบังคับให้ LINE โหลด config.js ตัวใหม่ล่าสุดเสมอ -->
-  <script src="config.js?v=2"></script>
+  <!-- 🟢 บังคับให้โหลด config.js ตัวใหม่ล่าสุดเสมอ -->
+  <script src="config.js?v=3"></script>
   
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f0fdf4; }
@@ -224,11 +221,13 @@
           } else Swal.fire('ผิดพลาด', 'ไม่พบ URL_QR ใน config.js', 'error');
         };
 
-        // 🟢 ตรวจสอบและดึงค่า LIFF_FORM พร้อมตัดช่องว่างทิ้งอัตโนมัติ
-        let targetLiffId = APP_CONFIG.LIFF_FORM ? APP_CONFIG.LIFF_FORM.trim() : "";
+        // 🟢 [ไม้ตาย!] สกัดเอาเฉพาะ LIFF ID รูปแบบที่ถูกต้องเท่านั้น
+        let rawLiff = APP_CONFIG.LIFF_FORM ? String(APP_CONFIG.LIFF_FORM) : "";
+        let matchId = rawLiff.match(/\d{10}-[a-zA-Z0-9]{8}/);
+        let targetLiffId = matchId ? matchId[0] : "";
 
         if (!targetLiffId) {
-          throw new Error("หาตัวแปร LIFF_FORM ใน config.js ไม่เจอ หรือมีค่าว่าง");
+          throw new Error("หาตัวแปร LIFF_FORM ใน config.js ไม่พบ หรือรูปแบบผิด");
         }
 
         // 🟢 เรียกใช้ LIFF_FORM
