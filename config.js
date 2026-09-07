@@ -15,6 +15,7 @@ const APP_CONFIG = {
   LIFF_QUOTATION: "2010894828-PMxAjpX9",
   LIFF_REGISTER_ID: "2010894828-toMvnZee",
 
+
   // 3. ข้อมูล URL เต็ม (สำหรับแชร์หรือทำปุ่มกด)
   URL_FRIEND: "https://line.me/R/ti/p/@poy365",
   URL_FORM: "https://liff.line.me/2010894828-Ge6gDj7e",
@@ -22,6 +23,13 @@ const APP_CONFIG = {
   URL_QR: "https://liff.line.me/2010894828-9WloHvv9",
   URL_POLICY: "https://liff.line.me/2010894828-Oyj63Qc3",
   URL_REGISTER: "https://liff.line.me/2010894828-toMvnZee",
+
+
+// เพิ่มบรรทัดนี้ต่อท้ายไฟล์ config.js
+const QUOTATION_WEB_URL = "https://liff.line.me/2010894828-PMxAjpX9"; // เปลี่ยนเป็นลิงก์หน้าใบเสนอราคาของคุณ
+
+const INSURANCE_LIFF_ID = "2010894828-OhhMMyDx"; // สำหรับหน้าขอใบเสนอราคาประกันรถยนต์
+
 
   // 4. การตั้งค่าอื่นๆ (ที่ไม่ใช่ความลับ)
   PREFIX_CODE: "POY-",
