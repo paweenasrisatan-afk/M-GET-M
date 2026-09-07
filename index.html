@@ -11,7 +11,7 @@
   <title>ระบบรับสิทธิพิเศษ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   
-  <script src="config.js?v=1000"></script>
+  <script src="config.js?v=1001"></script>
 </head>
 <body style="background-color: #f5f5f5; text-align: center; font-family: sans-serif; padding-top: 30px; margin: 0;">
   
@@ -95,13 +95,12 @@
                   <button onclick="liff.closeWindow()" style="background-color: #1e3a8a; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; max-width: 280px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">💬 กลับสู่หน้าแชท</button>
                 `;
               } else if (result.status === "success") {
-                // 🟢 ลบปุ่มออก และแสดงข้อความกำลังพาไปหน้าถัดไป
                 document.getElementById('loadingSection').innerHTML = `
                   <h2 style="color: #1DB446; margin-bottom: 10px; font-size: 24px;">ยืนยันรับสิทธิ์สำเร็จ!</h2>
                   <p style="color: #666; margin-bottom: 25px; font-size: 16px;">กำลังพาคุณเข้าสู่หน้าแบบสอบถาม...</p>
                 `;
                 
-                // 🟢 หน่วงเวลา 1.5 วินาทีให้ลูกค้าอ่านทัน แล้วส่งทะลุเข้าหน้าฟอร์มทันที
+                // หน่วงเวลา 1.5 วินาที แล้วพาไป
                 setTimeout(() => {
                   goToSurvey();
                 }, 1500);
@@ -124,12 +123,12 @@
     };
 
     function goToSurvey() {
-      if(liff.isApiAvailable('openWindow')) {
-        liff.openWindow({ url: formLiffUrl, external: false });
-        setTimeout(() => liff.closeWindow(), 500); 
-      } else {
-        window.location.replace(formLiffUrl);
+      if (!formLiffUrl) {
+        document.getElementById('loadingSection').innerHTML = `<span style="color:red;">Error: ไม่พบลิงก์แบบสอบถาม (URL_FORM) ในไฟล์ config.js</span>`;
+        return;
       }
+      // 🟢 ใช้วิธีโหลดหน้าใหม่ทับหน้าเดิม (เลี่ยง Popup Blocker ของ LINE)
+      window.location.href = formLiffUrl;
     }
 
     async function executeShare() {
