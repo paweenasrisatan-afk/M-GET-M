@@ -12,7 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <!-- 🟢 ดึงไฟล์ config.js มาใช้งาน -->
-  <script src="config.js?v=2001"></script> 
+  <script src="config.js?v=2002"></script> 
   
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
@@ -209,8 +209,17 @@
         
         currentAgent = res;
 
-        // 🌟 ดึง User ID ของตัวแทนมาใส่เป็นค่าตั้งต้นในช่อง input ทันที
-        document.getElementById('targetUserId').value = userId;
+       // 🌟 ดึง User ID ของลูกค้าจาก URL (ที่แนบมาตอนแอดมินกดปุ่ม) มาใส่ในช่อง
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerUid = urlParams.get('uid');
+        
+        if (customerUid) {
+            document.getElementById('targetUserId').value = customerUid;
+        } else {
+            // ถ้าไม่ได้กดมาจากลิงก์แจ้งเตือน ให้เคลียร์ช่องให้ว่างไว้
+            document.getElementById('targetUserId').value = ""; 
+        }
+
 
       })
       .catch(err => {
