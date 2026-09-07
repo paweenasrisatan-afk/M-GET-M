@@ -200,201 +200,7 @@
               <span class="ins-item-name">วิริยะประกันภัย</span>
             </div>
             
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'คุ้มภัยโตเกียวมารีนประกันภัย')">
-              <img src="https://www.tokiomarine.com/content/dam/tmh/th/logos/tokiomarine_logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
-              <span class="ins-item-name">คุ้มภัยโตเกียวมารีนประกันภัย</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'กรุงเทพประกันภัย')">
-              <img src="https://www.bangkokinsurance.com/assets/img/bki-logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
-              <span class="ins-item-name">กรุงเทพประกันภัย</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'เมืองไทยประกันภัย')">
-              <img src="https://www.muangthaiinsurance.com/upload/mtilogo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
-              <span class="ins-item-name">เมืองไทยประกันภัย</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'สินมั่นคงประกันภัย')">
-              <div class="ins-item-icon" style="background:#e3f2fd; color:#1976d2;">SMK</div>
-              <span class="ins-item-name">สินมั่นคงประกันภัย</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'ธนชาตประกันภัย')">
-              <img src="https://upload.wikimedia.org/wikipedia/th/5/52/Thanachart_Bank_logo.svg" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
-              <span class="ins-item-name">ธนชาตประกันภัย</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'ทิพยประกันภัย')">
-              <img src="https://www.dhipaya.co.th/logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
-              <span class="ins-item-name">ทิพยประกันภัย</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'ประกันภัยไทยวิวัฒน์')">
-              <img src="https://www.thaivivat.co.th/assets/img/logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
-              <span class="ins-item-name">ประกันภัยไทยวิวัฒน์</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'อลิอันซ์อยุธยาประกันภัย')">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Allianz_logo.svg" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
-              <span class="ins-item-name">อลิอันซ์อยุธยาประกันภัย</span>
-            </div>
-
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'บริษัทอื่นๆ')">
-              <div class="ins-item-icon">🏢</div>
-              <span class="ins-item-name">บริษัทอื่นๆ</span>
-            </div>
-            
-            <div class="ins-list-item" onclick="selectInsListItem(this, 'จำไม่ได้ / ไม่แน่ใจ')">
-              <div class="ins-item-icon">❓</div>
-              <span class="ins-item-name">จำไม่ได้ / ไม่แน่ใจ</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 5: ข้อมูลติดต่อ -->
-        <div id="step5" class="step-section">
-          <label class="title-label">วันที่ต้องการให้คุ้มครอง</label>
-          <input type="date" id="effectiveDate" required onchange="showFinalStep()">
-
-          <div id="step6" class="step-section">
-            <div class="divider"></div>
-            <div class="section-title">ข้อมูลสำหรับจัดส่งแผนประกัน</div>
-
-            <label class="title-label">ชื่อ - นามสกุล</label>
-            <input type="text" id="customerName" required placeholder="ระบุชื่อของคุณ">
-
-            <label class="title-label">เบอร์โทรศัพท์</label>
-            <input type="tel" id="phone" required placeholder="08XXXXXXXX" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-
-            <label class="title-label">อีเมล (ถ้ามี)</label>
-            <input type="email" id="email" placeholder="example@email.com">
-
-            <button type="submit" id="btnSubmit" class="btn-submit mt-4">ดูแผนประกันเลย 🚀</button>
-          </div>
-        </div>
-      </form>
-    </div>
-
-    <!-- หน้าจอขอบคุณ -->
-    <div id="thankYouScreen">
-      <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Success" style="margin: 0 auto; width: 120px;">
-      <h2 style="color: #1a237e; font-size: 24px; margin-bottom: 10px;">ได้รับข้อมูลเรียบร้อยแล้ว!</h2>
-      <p style="color: #455a64; margin-bottom: 30px;">โปรดรอสักครู่ ระบบกำลังเตรียมสร้างใบเสนอราคาที่ดีที่สุด และแอดมินจะแจ้งกลับทาง LINE ทันทีครับ</p>
-      <button class="btn-submit" onclick="closeThankYouPage()">กลับสู่หน้าแชท</button>
-    </div>
-
-  </div>
-
-  <script>
-    let lineUserId = "", lineDisplayName = "", linePicUrl = "";
-    const MY_LIFF_ID = typeof INSURANCE_LIFF_ID !== 'undefined' ? INSURANCE_LIFF_ID : "";
-
-    window.onload = async function() {
-        populateYears(); 
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('effectiveDate').setAttribute('min', today);
-
-        try {
-            if(!MY_LIFF_ID) throw new Error("ไม่พบ INSURANCE_LIFF_ID ใน config.js");
-            await liff.init({ liffId: MY_LIFF_ID });
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
-                lineUserId = profile.userId;
-                lineDisplayName = profile.displayName;
-                linePicUrl = profile.pictureUrl || "";
-                
-                document.getElementById('customerName').value = lineDisplayName;
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'block';
-            } else {
-                liff.login();
-            }
-        } catch(err) {
-            Swal.fire("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ LINE ได้: " + err.message, "error");
-        }
-    };
-
-    function populateYears() {
-        const yearSelect = document.getElementById("year");
-        if (!yearSelect) return;
-        const currentYear = new Date().getFullYear();
-        for (let i = currentYear; i >= currentYear - 20; i--) {
-            let option = document.createElement("option");
-            option.value = i;
-            option.text = `${i} (${i + 543})`;
-            yearSelect.appendChild(option);
-        }
-    }
-
-    function selectCar(el, val) {
-        document.querySelectorAll('input[name="carType"]').forEach(i => i.parentElement.classList.remove('active'));
-        el.classList.add('active'); el.querySelector('input').checked = true;
-        document.getElementById('step2').style.display = 'block';
-        setTimeout(() => document.getElementById('step2').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
-    }
-
-    function selectBrand(el, val) {
-        document.querySelectorAll('#brandOptions .chip-btn').forEach(e => e.classList.remove('active'));
-        el.classList.add('active'); document.getElementById('selectedBrand').value = val; document.getElementById('otherBrand').value = "";
-        document.getElementById('step3').style.display = 'block';
-        setTimeout(() => document.getElementById('step3').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
-    }
-    
-    function selectOtherBrand(sel) {
-        document.querySelectorAll('#brandOptions .chip-btn').forEach(e => e.classList.remove('active'));
-        document.getElementById('selectedBrand').value = sel.value;
-        document.getElementById('step3').style.display = 'block';
-        setTimeout(() => document.getElementById('step3').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
-    }
-
-    function selectUsage(el, val) {
-        document.querySelectorAll('input[name="usageType"]').forEach(i => i.parentElement.classList.remove('active'));
-        el.classList.add('active'); el.querySelector('input').checked = true;
-        document.getElementById('step4').style.display = 'block';
-        setTimeout(() => document.getElementById('step4').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
-    }
-
-    // 🌟 ระบบเลือกประกันใน List แบบใหม่
-    function selectInsListItem(el, val) {
-        document.querySelectorAll('.ins-list-item').forEach(e => e.classList.remove('active'));
-        el.classList.add('active'); 
-        document.getElementById('selectedIns').value = val;
-        
-        document.getElementById('step5').style.display = 'block';
-        setTimeout(() => document.getElementById('step5').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
-    }
-
-    // 🌟 ระบบค้นหาประกัน
-    function filterInsList() {
-        let input = document.getElementById('insSearchInput');
-        let filter = input.value.toLowerCase();
-        let items = document.querySelectorAll('.ins-list-item');
-
-        items.forEach(item => {
-            let text = item.querySelector('.ins-item-name').innerText.toLowerCase();
-            if (text.indexOf(filter) > -1) {
-                item.style.display = "flex";
-            } else {
-                item.style.display = "none";
-            }
-        });
-    }
-
-    function showFinalStep() {
-        document.getElementById('step6').style.display = 'block';
-        setTimeout(() => document.getElementById('step6').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
-    }
-
-    function closeThankYouPage() {
-        if (liff.isInClient()) {
-            liff.closeWindow(); 
-        } else {
-            window.location.href = "https://line.me/R/ti/p/@poy365"; 
-        }
-    }
-
-    function submitInsurance(event) {
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'คุ้มภัยโตเกียวมารีนประกันภัยfunction submitInsurance(event) {
       event.preventDefault();
       
       const phone = document.getElementById("phone").value;
@@ -433,19 +239,32 @@
          quotationUrl: typeof QUOTATION_WEB_URL !== 'undefined' ? QUOTATION_WEB_URL : ""
       };
 
-      fetch(APP_CONFIG.GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) })
-      .then(res => res.json())
-      .then(data => {
-          if (data.status === "success") {
+      // 🛡️ โค้ดส่งข้อมูลแบบป้องกันการค้าง 100%
+      fetch(APP_CONFIG.GAS_API_URL, { 
+          method: 'POST', 
+          body: JSON.stringify(payload) 
+      })
+      .then(res => res.text()) // แปลงเป็นข้อความก่อน ป้องกันเว็บค้างถ้า Google พ่น HTML กลับมา
+      .then(text => {
+          let data;
+          try {
+              data = JSON.parse(text);
+          } catch(e) {
+              throw new Error("ระบบปลายทางขัดข้อง (กรุณาอัปเดต Google Apps Script เป็นเวอร์ชันใหม่)");
+          }
+          
+          if (data.status === "success" || data.success === true) {
               document.getElementById('mainFormArea').style.display = 'none';
               document.getElementById('thankYouScreen').style.display = 'block';
               window.scrollTo(0, 0);
-          } else { throw new Error("Save failed"); }
+          } else { 
+              throw new Error(data.error || "บันทึกข้อมูลไม่สำเร็จ"); 
+          }
       })
       .catch(err => {
           btn.innerHTML = "ดูแผนประกันเลย 🚀";
           btn.disabled = false;
-          Swal.fire("ข้อผิดพลาด", "ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่", "error");
+          Swal.fire("ข้อผิดพลาด", err.message || "ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่", "error");
       });
     }
   </script>
