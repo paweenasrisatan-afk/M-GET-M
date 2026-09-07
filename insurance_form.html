@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เช็คเบี้ยประกันรถยนต์ ฟรี</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="config.js"></script> 
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
+    .container { background: white; width: 100%; max-width: 480px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; padding-bottom: 30px;}
+    
+    .hero-header { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 25px 20px; text-align: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; border-bottom: 4px solid #1565c0;}
+    .hero-header h2 { color: #0d47a1; margin: 0; font-size: 22px; font-weight: 700; }
+    .hero-header h2 span { color: #f39c12; text-decoration: underline; }
+    .hero-header p { color: #455a64; font-size: 14px; margin: 8px 0 0 0; }
+
+    .form-content { padding: 20px; }
+    .section-title { font-weight: 700; font-size: 16px; color: #1a237e; margin-bottom: 15px; text-align: center; }
+    label.title-label { font-weight: 700; font-size: 15px; color: #37474f; display: block; margin: 20px 0 10px 0; }
+
+    /* ซ่อนสเต็ปที่ยังไม่ถึง */
+    .step-section { display: none; animation: fadeIn 0.5s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Grid Layout สำหรับ Step 1, 2, 3 */
+    .chip-grid { display: grid; gap: 10px; margin-bottom: 10px; min-width: 0; }
+    .chip-grid.col-2 { grid-template-columns: 1fr 1fr; }
+    .chip-grid.col-3 { grid-template-columns: repeat(3, 1fr); }
+    
+    .chip-btn {
+        background: #fff; border: 1px solid #cfd8dc; border-radius: 8px; 
+        padding: 10px 5px; text-align: center; font-size: 13px; color: #455a64; 
+        cursor: pointer; transition: 0.2s; font-weight: 600; display: flex; 
+        flex-direction: column; align-items: center; justify-content: center; 
+        min-height: 85px; line-height: 1.2; box-sizing: border-box; min-width: 0; overflow: hidden;
+    }
+    .chip-btn:hover { background: #f8fbff; border-color: #90caf9; }
+    .chip-btn.active { background: #e3f2fd; border-color: #1976d2; color: #1565c0; box-shadow: 0 2px 8px rgba(25,118,210,0.15); }
+    .chip-btn input { display: none; }
+    .chip-icon { font-size: 30px; margin-bottom: 5px; }
+    .logo-img { height: 30px; width: auto; max-width: 100%; object-fit: contain; margin-bottom: 6px; }
+
+    /* 🌟 สไตล์เฉพาะสำหรับ List บริษัทประกัน (Step 4) */
+    .ins-search-container { position: relative; margin-bottom: 10px; }
+    .ins-search-container input { padding-left: 35px; width: 100%; padding-top: 12px; padding-bottom: 12px; border: 1px solid #1976d2; border-radius: 8px; font-family: 'Sarabun'; font-size: 15px;}
+    .ins-search-icon { position: absolute; left: 12px; top: 12px; font-size: 16px; color: #7f8c8d; }
+
+    .ins-list-container { max-height: 380px; overflow-y: auto; border: 1px solid #cfd8dc; border-radius: 8px; background: #fff; padding-bottom: 10px; }
+    .ins-category { font-size: 13px; color: #7f8c8d; font-weight: 600; padding: 12px 15px 5px 15px; background: #f9fbfb; }
+    .ins-list-item { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f0f2f5; cursor: pointer; transition: 0.2s; }
+    .ins-list-item:hover, .ins-list-item.active { background: #e3f2fd; }
+    .ins-list-item:last-child { border-bottom: none; }
+    .ins-item-logo { width: 32px; height: 32px; object-fit: contain; margin-right: 15px; border-radius: 4px; }
+    .ins-item-icon { width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; margin-right: 15px; background: #eceff1; border-radius: 4px; color: #546e7a; font-weight: bold; font-size: 12px;}
+    .ins-item-name { font-size: 15px; color: #2c3e50; font-weight: 500; }
+
+    /* Input ธรรมดา */
+    input[type="text"]:not(#insSearchInput), input[type="tel"], input[type="email"], input[type="date"], select { 
+        width: 100%; padding: 14px 15px; margin-bottom: 10px; 
+        border: 1px solid #cfd8dc; border-radius: 8px; box-sizing: border-box; 
+        font-family: 'Sarabun', sans-serif; font-size: 15px; color: #263238; background: #fff; transition: 0.2s;
+    }
+    input:focus, select:focus { outline: none; border-color: #1976d2; box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15); }
+    select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231976d2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 15px center; background-size: 16px; cursor: pointer; }
+
+    .divider { border-top: 2px dashed #eceff1; margin: 30px 0; }
+    .btn-submit { width: 100%; padding: 16px; border: none; border-radius: 12px; background: linear-gradient(to right, #1e88e5, #1565c0); color: white; font-weight: 700; font-family: 'Sarabun', sans-serif; font-size: 18px; cursor: pointer; box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3); transition: 0.3s; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(21, 101, 192, 0.4); }
+    #loadingScreen { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
+    #thankYouScreen { display: none; text-align: center; padding: 40px 20px; }
+  </style>
+</head>
+<body>
+
+  <div id="loadingScreen">
+    <h3 style="color:#1565c0;" id="loadingText">กำลังเตรียมระบบ... ⏳</h3>
+  </div>
+
+  <div class="container" id="appContainer" style="display:none;">
+    <div id="mainFormArea">
+      <div class="hero-header">
+        <h2>เช็คเบี้ยประกันรถยนต์ <span>ฟรี</span></h2>
+        <p>และ ผ่อนได้ 0% คัดเบี้ยจากบริษัทชั้นนำมาให้แล้ว</p>
+      </div>
+
+      <form class="form-content" id="insuranceForm" onsubmit="submitInsurance(event)">
+        
+        <!-- Step 1: ชนิดรถ -->
+        <div id="step1">
+          <div class="section-title">วันนี้จะเช็คเบี้ยให้รถคันไหนครับ?</div>
+          <div class="chip-grid col-2">
+            <label class="chip-btn" onclick="selectCar(this, 'รถเก๋ง / กระบะ 4 ประตู')">
+              <input type="radio" name="carType" value="รถเก๋ง / กระบะ 4 ประตู">
+              <span class="chip-icon">🚗</span> <span>รถเก๋ง / กระบะ 4 ประตู</span>
+            </label>
+            <label class="chip-btn" onclick="selectCar(this, 'กระบะ 2 ประตู')">
+              <input type="radio" name="carType" value="กระบะ 2 ประตู">
+              <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f6fb.png" style="width: 30px; height: 30px; margin-bottom: 5px;" alt="กระบะ">
+              <span>กระบะ 2 ประตู</span>
+            </label>
+            <label class="chip-btn" onclick="selectCar(this, 'รถไฟฟ้า EV')">
+              <input type="radio" name="carType" value="รถไฟฟ้า EV">
+              <span class="chip-icon">⚡</span> <span>รถไฟฟ้า EV</span>
+            </label>
+            <label class="chip-btn" onclick="selectCar(this, 'รถตู้')">
+              <input type="radio" name="carType" value="รถตู้">
+              <span class="chip-icon">🚐</span> <span>รถตู้</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 2: ยี่ห้อรถ -->
+        <div id="step2" class="step-section">
+          <label class="title-label">ยี่ห้อรถ</label>
+          <input type="hidden" id="selectedBrand" value="">
+          <div class="chip-grid col-3" id="brandOptions">
+            <div class="chip-btn" onclick="selectBrand(this, 'TOYOTA')">
+              <img src="https://cdn.worldvectorlogo.com/logos/toyota-1.svg" class="logo-img" alt="TOYOTA"><span>TOYOTA</span>
+            </div>
+            <div class="chip-btn" onclick="selectBrand(this, 'HONDA')">
+              <img src="https://cdn.worldvectorlogo.com/logos/honda-4.svg" class="logo-img" alt="HONDA"><span>HONDA</span>
+            </div>
+            <div class="chip-btn" onclick="selectBrand(this, 'ISUZU')">
+              <img src="https://cdn.worldvectorlogo.com/logos/isuzu.svg" class="logo-img" alt="ISUZU"><span>ISUZU</span>
+            </div>
+            <div class="chip-btn" onclick="selectBrand(this, 'NISSAN')">
+              <img src="https://cdn.worldvectorlogo.com/logos/nissan-6.svg" class="logo-img" alt="NISSAN"><span>NISSAN</span>
+            </div>
+            <div class="chip-btn" onclick="selectBrand(this, 'MITSUBISHI')">
+              <img src="https://cdn.worldvectorlogo.com/logos/mitsubishi.svg" class="logo-img" alt="MITSUBISHI"><span>MITSUBISHI</span>
+            </div>
+            <div class="chip-btn" onclick="selectBrand(this, 'MAZDA')">
+              <img src="https://cdn.worldvectorlogo.com/logos/mazda.svg" class="logo-img" alt="MAZDA"><span>MAZDA</span>
+            </div>
+          </div>
+          <select id="otherBrand" onchange="selectOtherBrand(this)">
+            <option value="" disabled selected>ยี่ห้ออื่นๆ นอกเหนือจากนี้...</option>
+            <option value="FORD">FORD</option>
+            <option value="MG">MG</option>
+            <option value="SUZUKI">SUZUKI</option>
+            <option value="BYD">BYD (EV)</option>
+            <option value="NETA">NETA (EV)</option>
+            <option value="GWM">GWM (EV)</option>
+            <option value="อื่นๆ">ยี่ห้ออื่นๆ</option>
+          </select>
+        </div>
+
+        <!-- Step 3: ข้อมูลรถ และ การใช้งาน -->
+        <div id="step3" class="step-section">
+          <label class="title-label">ข้อมูลรถ</label>
+          <input type="text" id="model" required placeholder="เลือกรุ่นรถ (เช่น CIVIC, D-MAX)">
+          <input type="text" id="subModel" placeholder="เลือกรายละเอียดรุ่นรถ (เช่น 1.8 EL)">
+          
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <div style="flex: 1;">
+              <select id="year" required>
+                <option value="" disabled selected>เลือกปีผลิตรุ่นรถ</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <input type="text" id="province" required placeholder="จังหวัดที่จดทะเบียน">
+            </div>
+          </div>
+
+          <label class="title-label">การใช้งาน</label>
+          <div class="chip-grid col-2">
+            <label class="chip-btn" onclick="selectUsage(this, 'ส่วนบุคคล (ไม่รับจ้าง)')" style="min-height: 55px;">
+              <input type="radio" name="usageType" value="ส่วนบุคคล (ไม่รับจ้าง)"> <span>ใช้ส่วนตัว</span>
+            </label>
+            <label class="chip-btn" onclick="selectUsage(this, 'ใช้เชิงพาณิชย์ / รับจ้าง')" style="min-height: 55px;">
+              <input type="radio" name="usageType" value="ใช้เชิงพาณิชย์ / รับจ้าง"> <span>เชิงพาณิชย์/รับจ้าง</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 🌟 Step 4: ประกันเดิม (แบบใหม่ List View ค้นหาได้) -->
+        <div id="step4" class="step-section">
+          <label class="title-label">บริษัทประกันล่าสุด</label>
+          <input type="hidden" id="selectedIns" value="">
+
+          <div class="ins-search-container">
+            <span class="ins-search-icon">🔍</span>
+            <input type="text" id="insSearchInput" placeholder="ค้นหาบริษัทประกัน..." onkeyup="filterInsList()">
+          </div>
+
+          <div class="ins-list-container" id="insListContainer">
+            <div class="ins-category">ไม่มีประกันที่ใช้อยู่</div>
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'ประกันหมดอายุแล้ว / ไม่มีประกันรถยนต์')">
+              <div class="ins-item-icon">🛡️</div>
+              <span class="ins-item-name">ประกันหมดอายุแล้ว / ไม่มีประกัน</span>
+            </div>
+
+            <div class="ins-category">มีประกันที่ใช้อยู่</div>
+            
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'วิริยะประกันภัย')">
+              <img src="https://www.viriyah.co.th/assets/images/logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">วิริยะประกันภัย</span>
+            </div>
+            
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'คุ้มภัยโตเกียวมารีนประกันภัย')">
+              <img src="https://www.tokiomarine.com/content/dam/tmh/th/logos/tokiomarine_logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">คุ้มภัยโตเกียวมารีนประกันภัย</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'กรุงเทพประกันภัย')">
+              <img src="https://www.bangkokinsurance.com/assets/img/bki-logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">กรุงเทพประกันภัย</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'เมืองไทยประกันภัย')">
+              <img src="https://www.muangthaiinsurance.com/upload/mtilogo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">เมืองไทยประกันภัย</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'สินมั่นคงประกันภัย')">
+              <div class="ins-item-icon" style="background:#e3f2fd; color:#1976d2;">SMK</div>
+              <span class="ins-item-name">สินมั่นคงประกันภัย</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'ธนชาตประกันภัย')">
+              <img src="https://upload.wikimedia.org/wikipedia/th/5/52/Thanachart_Bank_logo.svg" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">ธนชาตประกันภัย</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'ทิพยประกันภัย')">
+              <img src="https://www.dhipaya.co.th/logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">ทิพยประกันภัย</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'ประกันภัยไทยวิวัฒน์')">
+              <img src="https://www.thaivivat.co.th/assets/img/logo.png" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">ประกันภัยไทยวิวัฒน์</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'อลิอันซ์อยุธยาประกันภัย')">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Allianz_logo.svg" class="ins-item-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2830/2830284.png'">
+              <span class="ins-item-name">อลิอันซ์อยุธยาประกันภัย</span>
+            </div>
+
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'บริษัทอื่นๆ')">
+              <div class="ins-item-icon">🏢</div>
+              <span class="ins-item-name">บริษัทอื่นๆ</span>
+            </div>
+            
+            <div class="ins-list-item" onclick="selectInsListItem(this, 'จำไม่ได้ / ไม่แน่ใจ')">
+              <div class="ins-item-icon">❓</div>
+              <span class="ins-item-name">จำไม่ได้ / ไม่แน่ใจ</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: ข้อมูลติดต่อ -->
+        <div id="step5" class="step-section">
+          <label class="title-label">วันที่ต้องการให้คุ้มครอง</label>
+          <input type="date" id="effectiveDate" required onchange="showFinalStep()">
+
+          <div id="step6" class="step-section">
+            <div class="divider"></div>
+            <div class="section-title">ข้อมูลสำหรับจัดส่งแผนประกัน</div>
+
+            <label class="title-label">ชื่อ - นามสกุล</label>
+            <input type="text" id="customerName" required placeholder="ระบุชื่อของคุณ">
+
+            <label class="title-label">เบอร์โทรศัพท์</label>
+            <input type="tel" id="phone" required placeholder="08XXXXXXXX" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+
+            <label class="title-label">อีเมล (ถ้ามี)</label>
+            <input type="email" id="email" placeholder="example@email.com">
+
+            <button type="submit" id="btnSubmit" class="btn-submit mt-4">ดูแผนประกันเลย 🚀</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- หน้าจอขอบคุณ -->
+    <div id="thankYouScreen">
+      <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Success" style="margin: 0 auto; width: 120px;">
+      <h2 style="color: #1a237e; font-size: 24px; margin-bottom: 10px;">ได้รับข้อมูลเรียบร้อยแล้ว!</h2>
+      <p style="color: #455a64; margin-bottom: 30px;">โปรดรอสักครู่ ระบบกำลังเตรียมสร้างใบเสนอราคาที่ดีที่สุด และแอดมินจะแจ้งกลับทาง LINE ทันทีครับ</p>
+      <button class="btn-submit" onclick="closeThankYouPage()">กลับสู่หน้าแชท</button>
+    </div>
+
+  </div>
+
+  <script>
+    let lineUserId = "", lineDisplayName = "", linePicUrl = "";
+    const MY_LIFF_ID = typeof INSURANCE_LIFF_ID !== 'undefined' ? INSURANCE_LIFF_ID : "";
+
+    window.onload = async function() {
+        populateYears(); 
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('effectiveDate').setAttribute('min', today);
+
+        try {
+            if(!MY_LIFF_ID) throw new Error("ไม่พบ INSURANCE_LIFF_ID ใน config.js");
+            await liff.init({ liffId: MY_LIFF_ID });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                lineUserId = profile.userId;
+                lineDisplayName = profile.displayName;
+                linePicUrl = profile.pictureUrl || "";
+                
+                document.getElementById('customerName').value = lineDisplayName;
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+            } else {
+                liff.login();
+            }
+        } catch(err) {
+            Swal.fire("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ LINE ได้: " + err.message, "error");
+        }
+    };
+
+    function populateYears() {
+        const yearSelect = document.getElementById("year");
+        if (!yearSelect) return;
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear; i >= currentYear - 20; i--) {
+            let option = document.createElement("option");
+            option.value = i;
+            option.text = `${i} (${i + 543})`;
+            yearSelect.appendChild(option);
+        }
+    }
+
+    function selectCar(el, val) {
+        document.querySelectorAll('input[name="carType"]').forEach(i => i.parentElement.classList.remove('active'));
+        el.classList.add('active'); el.querySelector('input').checked = true;
+        document.getElementById('step2').style.display = 'block';
+        setTimeout(() => document.getElementById('step2').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
+    }
+
+    function selectBrand(el, val) {
+        document.querySelectorAll('#brandOptions .chip-btn').forEach(e => e.classList.remove('active'));
+        el.classList.add('active'); document.getElementById('selectedBrand').value = val; document.getElementById('otherBrand').value = "";
+        document.getElementById('step3').style.display = 'block';
+        setTimeout(() => document.getElementById('step3').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
+    }
+    
+    function selectOtherBrand(sel) {
+        document.querySelectorAll('#brandOptions .chip-btn').forEach(e => e.classList.remove('active'));
+        document.getElementById('selectedBrand').value = sel.value;
+        document.getElementById('step3').style.display = 'block';
+        setTimeout(() => document.getElementById('step3').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
+    }
+
+    function selectUsage(el, val) {
+        document.querySelectorAll('input[name="usageType"]').forEach(i => i.parentElement.classList.remove('active'));
+        el.classList.add('active'); el.querySelector('input').checked = true;
+        document.getElementById('step4').style.display = 'block';
+        setTimeout(() => document.getElementById('step4').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
+    }
+
+    // 🌟 ระบบเลือกประกันใน List แบบใหม่
+    function selectInsListItem(el, val) {
+        document.querySelectorAll('.ins-list-item').forEach(e => e.classList.remove('active'));
+        el.classList.add('active'); 
+        document.getElementById('selectedIns').value = val;
+        
+        document.getElementById('step5').style.display = 'block';
+        setTimeout(() => document.getElementById('step5').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
+    }
+
+    // 🌟 ระบบค้นหาประกัน
+    function filterInsList() {
+        let input = document.getElementById('insSearchInput');
+        let filter = input.value.toLowerCase();
+        let items = document.querySelectorAll('.ins-list-item');
+
+        items.forEach(item => {
+            let text = item.querySelector('.ins-item-name').innerText.toLowerCase();
+            if (text.indexOf(filter) > -1) {
+                item.style.display = "flex";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+
+    function showFinalStep() {
+        document.getElementById('step6').style.display = 'block';
+        setTimeout(() => document.getElementById('step6').scrollIntoView({behavior: 'smooth', block: 'start'}), 100);
+    }
+
+    function closeThankYouPage() {
+        if (liff.isInClient()) {
+            liff.closeWindow(); 
+        } else {
+            window.location.href = "https://line.me/R/ti/p/@xservice"; 
+        }
+    }
+
+    function submitInsurance(event) {
+      event.preventDefault();
+      
+      const phone = document.getElementById("phone").value;
+      if (!phone.startsWith("0") || phone.length < 9) { return Swal.fire("เบอร์โทรไม่ถูกต้อง", "กรุณาใส่เลข 0 นำหน้า และกรอกให้ครบ 10 หลัก", "warning"); }
+
+      const brandVal = document.getElementById("selectedBrand").value;
+      if(!brandVal) return Swal.fire("ข้อมูลไม่ครบ", "กรุณาเลือกยี่ห้อรถยนต์", "warning");
+
+      const insVal = document.getElementById("selectedIns").value;
+      if(!insVal) return Swal.fire("ข้อมูลไม่ครบ", "กรุณาเลือกบริษัทประกันล่าสุดจากรายการ", "warning");
+
+      const usageEl = document.querySelector('input[name="usageType"]:checked');
+      if(!usageEl) return Swal.fire("ข้อมูลไม่ครบ", "กรุณาเลือกการใช้งานรถ", "warning");
+
+      const btn = document.getElementById("btnSubmit");
+      btn.innerHTML = "กำลังคำนวณแผนประกัน... ⏳";
+      btn.disabled = true;
+
+      const payload = {
+         action: "saveInsuranceCheck",
+         carType: document.querySelector('input[name="carType"]:checked').value,
+         brand: brandVal,
+         model: document.getElementById("model").value,
+         subModel: document.getElementById("subModel").value,
+         year: document.getElementById("year").value,
+         province: document.getElementById("province").value,
+         usage: usageEl.value,
+         currentIns: insVal,
+         effectiveDate: document.getElementById("effectiveDate").value,
+         customerName: document.getElementById("customerName").value,
+         phone: phone,
+         email: document.getElementById("email").value,
+         userId: lineUserId,
+         displayName: lineDisplayName,
+         pictureUrl: linePicUrl,
+         quotationUrl: typeof QUOTATION_WEB_URL !== 'undefined' ? QUOTATION_WEB_URL : ""
+      };
+
+      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) })
+      .then(res => res.json())
+      .then(data => {
+          if (data.status === "success") {
+              document.getElementById('mainFormArea').style.display = 'none';
+              document.getElementById('thankYouScreen').style.display = 'block';
+              window.scrollTo(0, 0);
+          } else { throw new Error("Save failed"); }
+      })
+      .catch(err => {
+          btn.innerHTML = "ดูแผนประกันเลย 🚀";
+          btn.disabled = false;
+          Swal.fire("ข้อผิดพลาด", "ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่", "error");
+      });
+    }
+  </script>
+</body>
+</html>
+
