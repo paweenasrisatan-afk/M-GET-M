@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="config.js?v=2002"></script>  
+  <script src="config.js?v=2003"></script>  
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
     .container { background: white; width: 100%; max-width: 480px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; padding-bottom: 30px;}
@@ -433,7 +433,7 @@
          quotationUrl: typeof QUOTATION_WEB_URL !== 'undefined' ? QUOTATION_WEB_URL : ""
       };
 
-      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) })
+      fetch(APP_CONFIG.GAS_API_URL, { method: 'POST', body: JSON.stringify(payload) })
       .then(res => res.json())
       .then(data => {
           if (data.status === "success") {
